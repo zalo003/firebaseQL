@@ -24,24 +24,3 @@ export enum WHEREOPERATOR {
     IN = 'in',
     NOT_IN = 'not-in'
 }
-
-export interface dbItems  {
-    reference?: string,
-  }
-
-
-export type CounterDocumentData = {
-    auctionedVehicles: number,
-    brandNewVehicles: number,
-    usedVehicles: number,
-    forAuction: number,
-    orders: number,
-    salvagedVehicles: number,
-    soldVehicles: number,
-    forSale: number,
-    users: number
-}
-
-export type FunctionReturn = {
-    data?: any
-}

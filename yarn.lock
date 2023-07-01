@@ -558,6 +558,13 @@ firebase@^9.23.0:
     "@firebase/storage-compat" "0.3.2"
     "@firebase/util" "1.9.3"
 
+firebaseql@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/firebaseql/-/firebaseql-1.0.1.tgz#b18a70d9c4652b03c4bb4068bc30a07ba107e582"
+  integrity sha512-zggil4HMebIVVGiphn8Pz2iGHon79h2d4tQFFVd8VTNn4G2/c3er0PdnOeF56bCGlGKnGPxF7LuWsSjeNXPfKw==
+  dependencies:
+    firebase "^9.23.0"
+
 get-caller-file@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-2.0.5.tgz#4f94412a82db32f36e3b0b9741f8a97feb031f7e"
