@@ -1,0 +1,13 @@
+{
+  "name": "firebaseql",
+  "version": "1.0.0",
+  "description": "firebase library for SQL users",
+  "main": "index.js",
+  "repository": "https://github.com/zalo003/firebaseQL.git",
+  "author": "Solomon Gbadamosi <exampaqs@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "firebase": "^9.23.0"
+  }
+}
