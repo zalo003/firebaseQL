@@ -1,7 +1,7 @@
 import {FirebaseApp} from 'firebase/app'
 import { FirebaseStorage, getDownloadURL, getStorage, ref, StorageReference, uploadBytesResumable, uploadString } from "firebase/storage";
 import { UPLOADTYPES } from "../dataTypes/fileupload.types";
-import { generateRandomString } from "../../utility/helpers";
+import { generateRandomString } from '../utility/helpers';
 
 export class StorageUpload {
 
