@@ -1,5 +1,5 @@
 import { DocumentData, QueryDocumentSnapshot} from "firebase/firestore"
-import { whereClause } from "./dataTypes/firebasequery.types"
+import {whereClause} from './dataTypes/firebasequery.types'
 
 export interface Model {
 

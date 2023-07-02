@@ -1,6 +1,6 @@
 import { BaseModel } from "./Base.model";
 
-export class Users extends BaseModel {
+export class UserModel extends BaseModel {
 
     table: string = 'users';
 }
