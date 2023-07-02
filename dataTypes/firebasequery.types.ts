@@ -24,3 +24,7 @@ export enum WHEREOPERATOR {
     IN = 'in',
     NOT_IN = 'not-in'
 }
+
+export type dbItems = {
+    reference?: string
+}
