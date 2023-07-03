@@ -1,12 +1,11 @@
 {
   "name": "firebaseql",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "firebase library for SQL users",
   "main": "dist/index.js",
   "module": "esm/index.js",
   "files": [
     "dist",
-    "src",
     "esm"
   ],
   "repository": "https://github.com/zalo003/firebaseQL.git",
@@ -29,6 +28,7 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "rimraf": "^5.0.1",
+    "source-map-loader": "^4.0.1",
     "typescript": "^5.1.6"
   }
 }
