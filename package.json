@@ -1,9 +1,9 @@
 {
   "name": "firebaseql",
-  "version": "1.0.8",
+  "version": "1.0.12",
   "description": "firebase library for SQL users",
-  "main": "dist/index.js",
-  "module": "esm/index.js",
+  "main": "./dist/index.js",
+  "module": "./esm/index.js",
   "files": [
     "dist",
     "esm"
@@ -20,12 +20,12 @@
     "prebuild": "npm run clean",
     "build": "npm run build:esm && npm run build:cjs",
     "build:cjs": "tsc --module commonjs --outDir dist",
-    "build:esm": "tsc --target es2018 --outDir esm",
+    "build:esm": "tsc --target esnext --outDir esm",
     "preversion": "npm run build",
     "postversion": "git push --follow-tags"
   },
   "prepublish": "tsc",
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "devDependencies": {
     "rimraf": "^5.0.1",
     "source-map-loader": "^4.0.1",
