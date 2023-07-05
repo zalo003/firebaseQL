@@ -12,13 +12,13 @@ import { FirebaseStorage, getDownloadURL, getStorage, ref, StorageReference, upl
 /**
  * firebase where clause
  */
-type whereClause = {
+export type whereClause = {
     key: string,
     operator: WhereFilterOp,
     value: any
 }
 
-enum UPLOADTYPES {
+export enum UPLOADTYPES {
     IMAGES = 'images',
     DOCUMENTS = 'documents',
     VIDEOS = 'videos'
@@ -31,7 +31,7 @@ enum UPLOADTYPES {
  * @param length 
  * @returns 
  */
-const generateRandomString = (length: number): string => {
+export const generateRandomString = (length: number): string => {
     if(length > 40){
         throw new Error(`Maximum generatable character is 40, ${length} was required`)
     }
@@ -44,7 +44,7 @@ const generateRandomString = (length: number): string => {
     return result;
 }
 
-type dbItems = {
+export type dbItems = {
     reference?: string
 }
 
