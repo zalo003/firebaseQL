@@ -607,3 +607,7 @@ export class UserModel extends BaseModel {
 
     table: string = 'users';
 }
+
+export type FunctionReturn = {
+    data: any
+}
