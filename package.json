@@ -1,6 +1,6 @@
 {
   "name": "firebaseql",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "firebase library for SQL users",
   "main": "dist/index.js",
   "module": "esm/index.js",
