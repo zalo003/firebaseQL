@@ -175,9 +175,8 @@ export class StorageUpload {
             }
             goodSize =  file.size > 0 && file.size <= this.maxSize!
         }else{
-            const f = file as unknown as File
             goodType = true
-            goodSize = f.size <= this.maxSize!
+            goodSize = true
         }
         
         // check and set error messages
