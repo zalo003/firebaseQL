@@ -61,11 +61,12 @@ interface Model {
      findAll(): Promise<DocumentData[]>
  
      // find item by where clause
-     findWhere({wh, lim, order} : 
+     findWhere({wh, lim, order, offset} : 
          {
              wh?:  whereClause[], 
              lim?:number, 
-             order?:string, 
+             order?:string,
+             offset?: string
          }): Promise<DocumentData[]>
  
      /**
@@ -100,7 +101,7 @@ interface Model {
       * @param lim 
       * @param order 
       */
-     streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string): void 
+     streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): void 
  
      /**
       * count data in database
@@ -306,7 +307,7 @@ export class BaseModel implements Model {
     offset?: QueryDocumentSnapshot<DocumentData>;
 
     // current query
-    protected currentQuery?: DocumentSnapshot<DocumentData>
+    // protected currentQuery?: DocumentSnapshot<DocumentData>
 
 
     /**
@@ -396,7 +397,7 @@ export class BaseModel implements Model {
      * @param lim 
      * @param order 
      */
-    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string): void {
+    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): void {
         const whereParameter = wh.map(clause=> where(
             clause.key, 
             clause.operator, 
@@ -411,8 +412,8 @@ export class BaseModel implements Model {
             constraint.push(orderBy(order))
         }
         // add offset
-        if(this.offset){
-            constraint.push(startAfter(this.offset))
+        if(offset){
+            constraint.push(startAfter(offset))
         }
         // add limit
         if(lim){
@@ -488,7 +489,7 @@ export class BaseModel implements Model {
      * perform complex query
      * @param param0 
      */
-    async findWhere( {wh, lim, order}:  {wh?: whereClause[], lim?:number, order?:string}): Promise<DocumentData[]> {
+    async findWhere( {wh, lim, order, offset}:  {wh?: whereClause[], lim?:number, order?:string, offset?: string}): Promise<DocumentData[]> {
         // get Collection reference
         const colRef = collection(this.firestorDB!, this.table)
         // set where clause
@@ -506,8 +507,8 @@ export class BaseModel implements Model {
             constraint.push(orderBy(order))
         }
         // add offset
-        if(this.offset){
-            constraint.push(startAfter(this.offset))
+        if(offset){
+            constraint.push(startAfter(offset))
         }
         // add limit
         if(lim){
