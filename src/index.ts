@@ -49,10 +49,6 @@ export type dbItems = {
 }
 
 interface Model {
-
-
-    // query pointer
-    offset?: QueryDocumentSnapshot<DocumentData>
  
      // fetch single item
      find(id: string): Promise<DocumentData | boolean>
@@ -397,7 +393,7 @@ export class BaseModel implements Model {
      * @param lim 
      * @param order 
      */
-    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): void {
+    async streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): Promise<void> {
         const whereParameter = wh.map(clause=> where(
             clause.key, 
             clause.operator, 
@@ -413,10 +409,12 @@ export class BaseModel implements Model {
         }
         // add offset
         if(offset){
-            constraint.push(startAfter(offset))
+            const off  =  await getDoc(doc(this.firestorDB!, offset));
+            constraint.push(startAfter(off))
         }
         // add limit
         if(lim){
+            // 
             constraint.push(limit(lim))
         }
         const ref: CollectionReference<DocumentData> = collection(this.firestorDB!, this.table, )
@@ -508,7 +506,8 @@ export class BaseModel implements Model {
         }
         // add offset
         if(offset){
-            constraint.push(startAfter(offset))
+            const off  =  await getDoc(doc(this.firestorDB!, offset));
+            constraint.push(startAfter(off))
         }
         // add limit
         if(lim){
