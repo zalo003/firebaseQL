@@ -70,7 +70,7 @@ interface Model {
       * create new data if does not exists
       * and update data if already exists
       */
-     save(data: object, id?: string ):  Promise<string>
+     save(data: object, id?: string ):  Promise<string | boolean>
  
      /**
       * Delete an item from database
@@ -536,7 +536,7 @@ export class BaseModel implements Model {
      * create or update data
      * @param data 
      */
-    async save(data: object, id?: string | undefined): Promise<string> {
+    async save(data: object, id?: string | undefined): Promise<string | boolean> {
         try {
             if(id===undefined){
                 const documentRef = await addDoc(collection(this.firestorDB!, this.table), data)
@@ -549,7 +549,7 @@ export class BaseModel implements Model {
             }
                     
         } catch (error) {
-            throw new Error(`Unable to save: ${error}`)
+            return false
         }
     }
 
