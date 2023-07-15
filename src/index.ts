@@ -178,11 +178,30 @@ export class StorageUpload {
         
         // check and set error messages
         if(!goodSize || !goodType){
-            this.setUploadError(storageRef)
+            this.setUploadError(storageRef, this.maxSize ?? 1000000, goodSize)
         }else{
             // set file name and path
             this.setFilePath(storageRef, uploadCategory, extension)
         }
+    }
+
+    /**
+     * Get human readable form for file size
+     * @param size 
+     * @returns 
+     */
+    private sizeMetric = (size: number): string =>{
+        let result = `${size} bytes`
+        if(size <= 999999){
+            result =  `${Math.round(size/1000)} Kb`
+        } else if(size <= 999999999){
+            result = `${Math.round(size/1000000)} Mb`
+        } else if (size <= 999999999999){
+            result = `${Math.round(size/1000000000)} Gb`
+        } else if (size <= 999999999999999){
+            result = `${Math.round(size/1000000000000)} T`
+        }
+        return result;
     }
 
     /**
@@ -209,20 +228,16 @@ export class StorageUpload {
 
     /**
      * setting error messages for failed file validation
-     * @param category 
      * @param ref 
+     * @param maxSize 
+     * @param isGoodSize 
+     * @param isGoodType 
      */
-    private setUploadError = (ref: UPLOADTYPES): void => {
-        if(ref===UPLOADTYPES.IMAGES){
-            this.uploadError = 'Image format is not supported'
-        }else if(ref===UPLOADTYPES.DOCUMENTS){
-            this.uploadError = 'Documents must be a pdf file and must not be larger than 1Mb'
-        }else if(ref===UPLOADTYPES.VIDEOS){
-           this.uploadError = 'Videos cannot be larger than 20Mb and must be an mp4 format'
-        }else{
-            this.uploadError = 'File format is not allowed'
-        }
-
+    private setUploadError = (ref: UPLOADTYPES, maxSize: number, isGoodSize: boolean): void => {
+        const msg = !isGoodSize ? `File size is must not be larger than ${this.sizeMetric(maxSize)}` :
+            `File is not a valid ${
+                (ref===UPLOADTYPES.IMAGES ? "image" : (ref===UPLOADTYPES.DOCUMENTS? 'document': 'video'))
+            }`
     }
 
     // generate new file name and extension
