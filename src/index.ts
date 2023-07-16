@@ -1,6 +1,6 @@
 import { WhereFilterOp } from "firebase/firestore"
 import { doc, collection, 
-    QueryDocumentSnapshot, DocumentData, DocumentSnapshot, 
+    QueryDocumentSnapshot, DocumentData, 
     DocumentReference, CollectionReference, onSnapshot, where, 
     QueryConstraint, orderBy, startAfter, limit, query, getDoc, 
     updateDoc, getDocs, addDoc, setDoc, deleteDoc, increment, 
@@ -210,7 +210,6 @@ export class StorageUpload {
      * @returns 
      */
     private getExtensionName = (fileType: string): string =>{
-        // file.type==='image/png' || file.type==='image/jpg' || file.type==='image/jpeg'
         let ext = ''
         if(fileType==='image/png'){
             ext = 'png'
@@ -234,7 +233,7 @@ export class StorageUpload {
      * @param isGoodType 
      */
     private setUploadError = (ref: UPLOADTYPES, maxSize: number, isGoodSize: boolean): void => {
-        const msg = !isGoodSize ? `File size is must not be larger than ${this.sizeMetric(maxSize)}` :
+        this.uploadError = !isGoodSize ? `File size is must not be larger than ${this.sizeMetric(maxSize)}` :
             `File is not a valid ${
                 (ref===UPLOADTYPES.IMAGES ? "image" : (ref===UPLOADTYPES.DOCUMENTS? 'document': 'video'))
             }`
