@@ -316,12 +316,6 @@ export class BaseModel implements Model {
     // offset data
     offset?: QueryDocumentSnapshot<DocumentData>;
 
-    // current query
-    // protected currentQuery?: DocumentSnapshot<DocumentData>
-
-    constructor(){
-        this.batch = writeBatch(this.firestorDB!)
-    }
 
 
     /**
