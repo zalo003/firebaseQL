@@ -1,4 +1,4 @@
-import { WhereFilterOp } from "firebase/firestore"
+import { WhereFilterOp, writeBatch } from "firebase/firestore"
 import { doc, collection, 
     QueryDocumentSnapshot, DocumentData, 
     DocumentReference, CollectionReference, onSnapshot, where, 
@@ -319,6 +319,10 @@ export class BaseModel implements Model {
     // current query
     // protected currentQuery?: DocumentSnapshot<DocumentData>
 
+    constructor(){
+        this.batch = writeBatch(this.firestorDB!)
+    }
+
 
     /**
      * save multiple documents
@@ -333,7 +337,8 @@ export class BaseModel implements Model {
             if(document.reference){
                 delete document.reference
             }
-            (this.batch!.set(docRef, document))
+            
+            this.batch!.set(docRef, document)
         })
         return await this.batch!.commit().then(()=>true).catch((e)=>{
             throw new Error(`Unable to saveBatch ${e}`)
