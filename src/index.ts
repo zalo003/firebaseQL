@@ -9,6 +9,9 @@ import { doc, collection,
 import {FirebaseApp} from 'firebase/app'
 import { FirebaseStorage, getDownloadURL, getStorage, ref, StorageReference, uploadBytesResumable, uploadString } from "firebase/storage";
 
+// firebase storage test
+export const fbsession = /^firebase:authUser:/
+
 /**
  * firebase where clause
  */
@@ -615,9 +618,15 @@ export class BaseModel implements Model {
 
 }
 
-export class UserModel extends BaseModel {
-
-    table: string = 'users';
+// session helper
+export const getSessionKey = (): string | null =>{
+    const sess = window.sessionStorage as object
+		const sessKeys = Object.keys(sess)
+		const ses = sessKeys.find(item => fbsession.test(item))
+    if(typeof(ses)!=='undefined'){
+      return ses
+    }
+    return null
 }
 
 export type FunctionReturn = {
