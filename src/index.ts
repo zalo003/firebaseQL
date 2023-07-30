@@ -1,4 +1,4 @@
-import { WhereFilterOp, writeBatch } from "firebase/firestore"
+import { WhereFilterOp } from "firebase/firestore"
 import { doc, collection, 
     QueryDocumentSnapshot, DocumentData, 
     DocumentReference, CollectionReference, onSnapshot, where, 
@@ -8,6 +8,7 @@ import { doc, collection,
 } from "firebase/firestore";
 import {FirebaseApp} from 'firebase/app'
 import { FirebaseStorage, getDownloadURL, getStorage, ref, StorageReference, uploadBytesResumable, uploadString } from "firebase/storage";
+import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber, ConfirmationResult, ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut } from 'firebase/auth'
 
 // firebase storage test
 export const fbsession = /^firebase:authUser:/
@@ -595,7 +596,12 @@ export class BaseModel implements Model {
 
     /**
      * Count data in database
-     * @param where 
+     * @param {whereClause[]} wh - query parameter (e.g. [
+     * {
+     *  key: string,
+     * value: any,
+     * operator: == , !=, >, < etc
+     * }]) 
      */
     async countData(wh: whereClause[]): Promise<number> {
 
@@ -618,7 +624,10 @@ export class BaseModel implements Model {
 
 }
 
-// session helper
+/**
+ * Check if firebase session is still active
+ * @returns {string | null}
+ */
 export const getSessionKey = (): string | null =>{
     const sess = window.sessionStorage as object
 		const sessKeys = Object.keys(sess)
@@ -631,4 +640,152 @@ export const getSessionKey = (): string | null =>{
 
 export type FunctionReturn = {
     data: any
+}
+
+export enum AUTH_PROVIDERS {
+    GOOGLE,
+    APPLE,
+    FACEBOOK,
+    TWITTER
+}
+
+export type QueryReturn = {
+    result: any,
+    status: boolean,
+    error?: any
+}
+
+/**
+ * Default firestore table for authenticating users
+ */
+export class Users extends BaseModel {
+
+    protected table: string = 'users';
+    protected confirmationResult?: ConfirmationResult;
+
+    /**
+     * confirm user is valid and get their information
+     * from firestore users table if exists
+     * @param { string , string, boolean} credentials - login credentials 
+     * @returns {Promise<QueryReturn>}
+     */
+    async login ({email, password, auth, psersist = false}: {email: string, password: string, auth: Auth,  psersist?: boolean}): Promise<QueryReturn> {
+        let result : QueryReturn = {result: undefined, status: false}
+        
+        try {
+            // persist user in session
+            if(psersist){
+                await setPersistence(auth, browserSessionPersistence)
+            }
+            // verify user's email and password is correct
+            const userAuth = await signInWithEmailAndPassword(auth, email, password)
+            if(userAuth){
+                result.status = true
+                // find user in table
+                const userData = await this.find(userAuth.user.uid)
+                result.result = userData!==false ? {...userData as DocumentData, phoneNumber: userAuth.user.phoneNumber} 
+                                : userAuth.user
+            }
+        } catch (error) {
+            result.error = error
+        }
+
+        return result
+    }
+
+    /**
+     * send OTP to verify user's number
+     * @param param0 
+     * @returns 
+     */
+    async sendOTP({auth, phoneNumber, appVerifier}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier}) {
+        try {
+            this.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        } catch (error) {
+            throw new Error("Unable to send message")
+        }
+    }
+
+    /**
+     * confirm One time password sent to users
+     * @param code 
+     * @returns 
+     */
+    async confirmOTP(code: string): Promise<boolean> {
+        if(this.confirmationResult){
+            const user = await this.confirmationResult.confirm(code)
+            if(user){
+                return true
+            } else {
+                return false
+            }
+        }
+        return false
+    }
+
+    /**
+     * Check if user is currently logged in
+     * @param auth 
+     * @returns 
+     */
+
+    isLoggedIn(auth: Auth): boolean {
+        try {
+            if(auth.currentUser){
+                return true
+            } else {
+                return false
+            }
+        } catch (error) {
+            throw new Error("Connection error!")
+        }
+    }
+
+    /**
+     * Reset logged in user's password
+     * @param {Auth, string} param0 
+     * @returns {boolean}
+     */
+    async resetPassword({auth, newPassword}: {auth: Auth, newPassword: string}): Promise<boolean>{
+        try {
+            await updatePassword(auth.currentUser!, newPassword)
+            return true
+        } catch (_) {
+            return false
+        }
+    }
+
+    /**
+     * send password reset message to user's email address
+     * @param param0 
+     * @returns 
+     */
+    async sendPasswordResetMessage({auth, email} : {auth: Auth, email: string}): Promise<boolean>{
+        try {
+            await sendPasswordResetEmail(auth, email)
+            return true
+        } catch (_) {
+            return false
+        }
+    }
+
+    /**
+     * logout users and end current session
+     * @param param0 
+     * @returns 
+     */
+    async logout({auth}: {auth: Auth}): Promise<boolean>{
+        try {
+            await signOut(auth)
+            return true
+        } catch (_) {
+            return false
+        }
+    }
+
+
+    // register TODO
+        // a. email and password
+        // b. providers (facebook, google, twitter and apple)
+    
 }
