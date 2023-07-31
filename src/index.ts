@@ -669,12 +669,12 @@ export class Users extends BaseModel {
      * @param { string , string, boolean} credentials - login credentials 
      * @returns {Promise<QueryReturn>}
      */
-    async login ({email, password, auth, psersist = false}: {email: string, password: string, auth: Auth,  psersist?: boolean}): Promise<QueryReturn> {
+    async login ({email, password, auth, persist = false}: {email: string, password: string, auth: Auth,  persist?: boolean}): Promise<QueryReturn> {
         let result : QueryReturn = {result: undefined, status: false}
         
         try {
             // persist user in session
-            if(psersist){
+            if(persist){
                 await setPersistence(auth, browserSessionPersistence)
             }
             // verify user's email and password is correct
@@ -682,9 +682,7 @@ export class Users extends BaseModel {
             if(userAuth){
                 result.status = true
                 // find user in table
-                const userData = await this.find(userAuth.user.uid)
-                result.result = userData!==false ? {...userData as DocumentData, phoneNumber: userAuth.user.phoneNumber} 
-                                : userAuth.user
+                result.result =  userAuth.user
             }
         } catch (error) {
             result.error = error
@@ -698,8 +696,12 @@ export class Users extends BaseModel {
      * @param param0 
      * @returns 
      */
-    async sendOTP({auth, phoneNumber, appVerifier}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier}) {
+    async sendOTP({auth, phoneNumber, appVerifier, persist = false}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, persist: boolean}) {
         try {
+            // persist user in session
+            if(persist){
+                await setPersistence(auth, browserSessionPersistence)
+            }
             this.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
         } catch (error) {
             throw new Error("Unable to send message")
