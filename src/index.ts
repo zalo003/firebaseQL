@@ -1,14 +1,13 @@
-import { WhereFilterOp } from "firebase/firestore"
 import { doc, collection, 
     QueryDocumentSnapshot, DocumentData, 
     DocumentReference, CollectionReference, onSnapshot, where, 
     QueryConstraint, orderBy, startAfter, limit, query, getDoc, 
     updateDoc, getDocs, addDoc, setDoc, deleteDoc, increment, 
-    getCountFromServer, Firestore, WriteBatch 
+    getCountFromServer, Firestore, WriteBatch , WhereFilterOp
 } from "firebase/firestore";
 import {FirebaseApp} from 'firebase/app'
 import { FirebaseStorage, getDownloadURL, getStorage, ref, StorageReference, uploadBytesResumable, uploadString } from "firebase/storage";
-import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber, ConfirmationResult, ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut } from 'firebase/auth'
+import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult } from 'firebase/auth'
 
 // firebase storage test
 export const fbsession = /^firebase:authUser:/
@@ -122,6 +121,51 @@ interface Model {
       * @param param0 
       */
      updateBatch({data}:{data: object[], callBack:()=>void, errorHandler:(error?: any)=>void}): Promise<boolean>
+
+
+     login ({email, password, auth, persist = false}: {email: string, password: string, auth: Auth,  persist?: boolean}): Promise<QueryReturn>
+
+     /**
+      * send otp to users
+      * @param param0 
+      */
+     sendOTP({auth, phoneNumber, appVerifier}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier }): Promise<ConfirmationResult | boolean>
+
+    /**
+     * confirm One time password sent to users
+     * @param code 
+     * @param confirmationResult 
+     */
+    confirmOTP(code: string, confirmationResult: ConfirmationResult): Promise<boolean>
+
+    /**
+     * Check if user is currently logged in
+     * @param auth 
+     * @returns 
+     */
+
+    isLoggedIn(auth: Auth): boolean 
+
+    /**
+     * Reset logged in user's password
+     * @param {Auth, string} param0 
+     * @returns {boolean}
+     */
+    resetPassword({auth, newPassword}: {auth: Auth, newPassword: string}): Promise<boolean>
+
+    /**
+     * send password reset message to user's email address
+     * @param param0 
+     * @returns 
+     */
+    sendPasswordResetMessage({auth, email} : {auth: Auth, email: string}): Promise<boolean> 
+
+    /**
+     * logout users and end current session
+     * @param param0 
+     * @returns 
+     */
+    logout({auth}: {auth: Auth}): Promise<boolean>
  
      /**
       * Delete multiple documents
@@ -315,11 +359,10 @@ export class BaseModel implements Model {
     protected batch?: WriteBatch
 
     // Database table name
-    protected readonly table: string = '';
+    protected table: string = '';
 
     // offset data
     offset?: QueryDocumentSnapshot<DocumentData>;
-
 
 
     /**
@@ -622,54 +665,13 @@ export class BaseModel implements Model {
         })
     }
 
-}
-
-/**
- * Check if firebase session is still active
- * @returns {string | null}
- */
-export const getSessionKey = (): string | null =>{
-    const sess = window.sessionStorage as object
-		const sessKeys = Object.keys(sess)
-		const ses = sessKeys.find(item => fbsession.test(item))
-    if(typeof(ses)!=='undefined'){
-      return ses
-    }
-    return null
-}
-
-export type FunctionReturn = {
-    data: any
-}
-
-export enum AUTH_PROVIDERS {
-    GOOGLE,
-    APPLE,
-    FACEBOOK,
-    TWITTER
-}
-
-export type QueryReturn = {
-    result: any,
-    status: boolean,
-    error?: any
-}
-
-/**
- * Default firestore table for authenticating users
- */
-export class Users extends BaseModel {
-
-    protected table: string = 'users';
-    protected confirmationResult?: ConfirmationResult;
-
-    /**
+     /**
      * confirm user is valid and get their information
      * from firestore users table if exists
      * @param { string , string, boolean} credentials - login credentials 
      * @returns {Promise<QueryReturn>}
      */
-    async login ({email, password, auth, persist = false}: {email: string, password: string, auth: Auth,  persist?: boolean}): Promise<QueryReturn> {
+     async login ({email, password, auth, persist = false}: {email: string, password: string, auth: Auth,  persist?: boolean}): Promise<QueryReturn> {
         let result : QueryReturn = {result: undefined, status: false}
         
         try {
@@ -696,15 +698,12 @@ export class Users extends BaseModel {
      * @param param0 
      * @returns 
      */
-    async sendOTP({auth, phoneNumber, appVerifier, persist = false}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, persist: boolean}) {
+    async sendOTP({auth, phoneNumber, appVerifier}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier}): Promise<ConfirmationResult | boolean> {
         try {
             // persist user in session
-            if(persist){
-                await setPersistence(auth, browserSessionPersistence)
-            }
-            this.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+            return await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
         } catch (error) {
-            throw new Error("Unable to send message")
+            throw new Error(`Unable to send message: , ${error}`)
         }
     }
 
@@ -713,9 +712,9 @@ export class Users extends BaseModel {
      * @param code 
      * @returns 
      */
-    async confirmOTP(code: string): Promise<boolean> {
-        if(this.confirmationResult){
-            const user = await this.confirmationResult.confirm(code)
+    async confirmOTP(code: string, confirmationResult: ConfirmationResult): Promise<boolean> {
+        if(confirmationResult){
+            const user = await confirmationResult.confirm(code)
             if(user){
                 return true
             } else {
@@ -786,8 +785,35 @@ export class Users extends BaseModel {
     }
 
 
-    // register TODO
-        // a. email and password
-        // b. providers (facebook, google, twitter and apple)
-    
+}
+
+/**
+ * Check if firebase session is still active
+ * @returns {string | null}
+ */
+export const getSessionKey = (): string | null =>{
+    const sess = window.sessionStorage as object
+		const sessKeys = Object.keys(sess)
+		const ses = sessKeys.find(item => fbsession.test(item))
+    if(typeof(ses)!=='undefined'){
+      return ses
+    }
+    return null
+}
+
+export type FunctionReturn = {
+    data: any
+}
+
+export enum AUTH_PROVIDERS {
+    GOOGLE,
+    APPLE,
+    FACEBOOK,
+    TWITTER
+}
+
+export type QueryReturn = {
+    result: any,
+    status: boolean,
+    error?: any
 }
