@@ -51,7 +51,7 @@ export type dbItems = {
     reference?: string
 }
 
-interface Model {
+export interface Model {
  
      // fetch single item
      find(id: string): Promise<DocumentData | boolean>
