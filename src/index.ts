@@ -122,51 +122,6 @@ export interface Model {
       */
      updateBatch({data}:{data: object[], callBack:()=>void, errorHandler:(error?: any)=>void}): Promise<boolean>
 
-
-     login ({email, password, auth, persist = false}: {email: string, password: string, auth: Auth,  persist?: boolean}): Promise<QueryReturn>
-
-     /**
-      * send otp to users
-      * @param param0 
-      */
-     sendOTP({auth, phoneNumber, appVerifier}: {auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier }): Promise<ConfirmationResult | boolean>
-
-    /**
-     * confirm One time password sent to users
-     * @param code 
-     * @param confirmationResult 
-     */
-    confirmOTP(code: string, confirmationResult: ConfirmationResult): Promise<boolean>
-
-    /**
-     * Check if user is currently logged in
-     * @param auth 
-     * @returns 
-     */
-
-    isLoggedIn(auth: Auth): boolean 
-
-    /**
-     * Reset logged in user's password
-     * @param {Auth, string} param0 
-     * @returns {boolean}
-     */
-    resetPassword({auth, newPassword}: {auth: Auth, newPassword: string}): Promise<boolean>
-
-    /**
-     * send password reset message to user's email address
-     * @param param0 
-     * @returns 
-     */
-    sendPasswordResetMessage({auth, email} : {auth: Auth, email: string}): Promise<boolean> 
-
-    /**
-     * logout users and end current session
-     * @param param0 
-     * @returns 
-     */
-    logout({auth}: {auth: Auth}): Promise<boolean>
- 
      /**
       * Delete multiple documents
       * @param param0 
@@ -516,7 +471,8 @@ export class BaseModel implements Model {
      * @param id 
      * @returns 
      */
-    async update(data: object, id: string): Promise<boolean> {
+    async update(data: dbItems, id: string): Promise<boolean> {
+        delete data.reference
         const docRef = doc(this.firestorDB!, this.table, id)
         return await updateDoc(docRef, data)
         .then(()=>true).catch((e)=>{
@@ -596,7 +552,8 @@ export class BaseModel implements Model {
      * create or update data
      * @param data 
      */
-    async save(data: object, id?: string | undefined): Promise<string | boolean> {
+    async save(data: dbItems, id?: string | undefined): Promise<string | boolean> {
+        delete data.reference
         try {
             if(id===undefined){
                 const documentRef = await addDoc(collection(this.firestorDB!, this.table), data)
@@ -664,6 +621,9 @@ export class BaseModel implements Model {
             throw new Error(`Unable to countData: ${e}`)
         })
     }
+}
+
+export class Users extends BaseModel {
 
      /**
      * confirm user is valid and get their information
@@ -783,7 +743,6 @@ export class BaseModel implements Model {
             return false
         }
     }
-
 
 }
 
