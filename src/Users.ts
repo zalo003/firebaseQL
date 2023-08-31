@@ -9,10 +9,10 @@ export class Users extends BaseModel {
      * register user, save data to firestore and send email verification
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, userData, password, verificationUrl}: {auth: Auth, userData: any, password: string, verificationUrl?: string}): Promise<boolean> {
+    async registerWithEmailAndPassword ({auth, userData, email, password, verificationUrl}: {auth: Auth, userData: any, email:string, password: string, verificationUrl?: string}): Promise<boolean> {
         try {
             // create firebase user with email and password
-            const credential = await createUserWithEmailAndPassword(auth, userData.email, password)
+            const credential = await createUserWithEmailAndPassword(auth, email, password)
             if(credential.user){
                 // save user data in firestore and send email verification message
                 await Promise.all([
