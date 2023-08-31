@@ -1,8 +1,35 @@
-import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult, getMultiFactorResolver, User, multiFactor, PhoneAuthProvider, MultiFactorResolver, PhoneMultiFactorGenerator } from 'firebase/auth'
+import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult, getMultiFactorResolver, User, multiFactor, PhoneAuthProvider, MultiFactorResolver, PhoneMultiFactorGenerator, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn } from './constants'
+import { errorLogger } from './helpers'
 
 export class Users extends BaseModel {
+
+    /**
+     * register user, save data to firestore and send email verification
+     * @param param0 
+     */
+    async registerWithEmailAndPassword ({auth, userData, password, verificationUrl}: {auth: Auth, userData: any, password: string, verificationUrl?: string}): Promise<boolean> {
+        try {
+            // create firebase user with email and password
+            const credential = await createUserWithEmailAndPassword(auth, userData.email, password)
+            if(credential.user){
+                // save user data in firestore and send email verification message
+                await Promise.all([
+                    sendEmailVerification(credential.user, {
+                        url: verificationUrl!
+                    }),
+                    this.save(userData, credential.user.uid)
+                ])
+                return true
+            } else {
+                return false
+            }
+        } catch (error) {
+            errorLogger("registerWithEmailAndPassword error: ", error)
+            return false
+        }
+    }
 
      /**
      * confirm user is valid and get their information
@@ -26,6 +53,7 @@ export class Users extends BaseModel {
                 result.result =  userAuth.user
             }
         } catch (error) {
+            errorLogger("login error: ", error)
             result.error = error
         }
 
@@ -42,26 +70,11 @@ export class Users extends BaseModel {
             // persist user in session
             return await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
         } catch (error) {
-            throw new Error(`Unable to send message: , ${error}`)
+            errorLogger("signInWithPhoneNumber error: ", error)
+            return false
         }
     }
 
-    // /**
-    //  * confirm One time password sent to users
-    //  * @param code 
-    //  * @returns 
-    //  */
-    // async confirmOTP(code: string, confirmationResult: ConfirmationResult): Promise<boolean> {
-    //     if(confirmationResult){
-    //         const user = await confirmationResult.confirm(code)
-    //         if(user){
-    //             return true
-    //         } else {
-    //             return false
-    //         }
-    //     }
-    //     return false
-    // }
 
     /**
      * Check if user is currently logged in
@@ -77,7 +90,8 @@ export class Users extends BaseModel {
                 return false
             }
         } catch (error) {
-            throw new Error("Connection error!")
+            errorLogger("isLoggedIn error: ", error)
+            return false
         }
     }
 
@@ -90,7 +104,8 @@ export class Users extends BaseModel {
         try {
             await updatePassword(auth.currentUser!, newPassword)
             return true
-        } catch (_) {
+        } catch (e) {
+            errorLogger("resetPassword error: ", e)
             return false
         }
     }
@@ -104,7 +119,8 @@ export class Users extends BaseModel {
         try {
             await sendPasswordResetEmail(auth, email)
             return true
-        } catch (_) {
+        } catch (e) {
+            errorLogger("sendPasswordResetMessage error: ", e)
             return false
         }
     }
@@ -118,7 +134,8 @@ export class Users extends BaseModel {
         try {
             await signOut(auth)
             return true
-        } catch (_) {
+        } catch (e) {
+            errorLogger("logout error: ", e)
             return false
         }
     }
@@ -127,8 +144,8 @@ export class Users extends BaseModel {
     * create and validate users
     * @param param0 
     */
-   async loginWithMultiAuthFactor({email, password, auth, recaptcha, persist = true}: 
-    {email: string, password: string, auth: Auth, recaptcha: ApplicationVerifier, persist?: boolean}): Promise<MFAVerifier | null>{
+   async loginWithMultiAuthFactor({email, password, auth, recaptcha, phoneNumber, persist = true}: 
+    {email: string, password: string, auth: Auth, recaptcha: ApplicationVerifier, phoneNumber?:string, persist?: boolean}): Promise<MFAVerifier | null>{
         
         try {
             // persist user in session
@@ -138,11 +155,12 @@ export class Users extends BaseModel {
             // sign in user
             const credential = await signInWithEmailAndPassword(auth, email, password)
             if(credential){
+                const user = phoneNumber? {...credential.user, phoneNumber}: credential.user
                 // user is not MFA enabled
                 // enroll user with multi-factor auth if user is admin
-                const verificationId = await this.setMultiFactorEnrollment(credential.user, recaptcha, auth)
+                const verificationId = await this.setMultiFactorEnrollment(user, recaptcha, auth)
                 if(verificationId){
-                    return {verificationId, user: credential.user}
+                    return {verificationId, user}
                 } else {
                     // unable to send message
                     return null
@@ -152,6 +170,7 @@ export class Users extends BaseModel {
                 return null
             }            
         } catch (e) {
+            errorLogger("loginWithMultiAuthFactor error: ", e)
             const error = e as any
             if (error.code === 'auth/multi-factor-auth-required') {
                 // The user is a multi-factor user. Second factor challenge is required.
@@ -179,7 +198,8 @@ export class Users extends BaseModel {
         const phoneAuthProvider = new PhoneAuthProvider(auth);
         // Send SMS verification code.
        return await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaverifier);
-    } catch (_) {
+    } catch (e) {
+        errorLogger("setMultiFactorEnrollment error: ", e)
         return null
     }
 }
@@ -213,6 +233,7 @@ confirmOTP = async (verifier: MFAVerifier, userCode: string): Promise<User | nul
          return user
     } catch (error) {
         // otp is not correct
+        errorLogger("confirmOTP error: ", error)
         return null
     }
 }
@@ -240,7 +261,8 @@ private sendOTP =  async (resolver: MultiFactorResolver, recaptchaVerifier: Appl
             // other auth factor managed to be first 
             return null
         } 
-    } catch (_) {
+    } catch (e) {
+        errorLogger("sendOTP error: ", e)
         return null
     }
 }

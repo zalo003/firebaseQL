@@ -34,3 +34,13 @@ export const getSessionKey = (): string | null =>{
     return null
 }
 
+// check if environment is production or development
+export const isDevelopment = window.location.hostname==='localhost'
+// export const baseUrl = isDevelopment ? 'http://localhost:3000'? undefined
+
+export const errorLogger = (error: any, ...optionalParams: any[])=>{
+  if(isDevelopment){
+    console.log(error, optionalParams)
+  }
+}
+
