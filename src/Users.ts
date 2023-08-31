@@ -1,24 +1,48 @@
-import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult, getMultiFactorResolver, User, multiFactor, PhoneAuthProvider, MultiFactorResolver, PhoneMultiFactorGenerator, createUserWithEmailAndPassword, sendEmailVerification, applyActionCode, verifyPasswordResetCode } from 'firebase/auth'
+import { 
+        Auth, 
+        setPersistence, 
+        browserSessionPersistence, 
+        signInWithEmailAndPassword, 
+        signInWithPhoneNumber,  
+        ApplicationVerifier, 
+        updatePassword, 
+        sendPasswordResetEmail, 
+        signOut, 
+        ConfirmationResult, 
+        getMultiFactorResolver, 
+        User, 
+        multiFactor, 
+        PhoneAuthProvider, 
+        MultiFactorResolver, 
+        PhoneMultiFactorGenerator, 
+        createUserWithEmailAndPassword, 
+        sendEmailVerification, 
+        applyActionCode, 
+        verifyPasswordResetCode, 
+        deleteUser
+} from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn } from './constants'
 import { errorLogger } from './helpers'
 
 export class Users extends BaseModel {
 
+    private user?: User
+
     /**
      * register user, save data to firestore and send email verification
+     * delete user if registration is not successful
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, userData, email, password, verificationUrl}: {auth: Auth, userData: any, email:string, password: string, verificationUrl?: string}): Promise<boolean> {
+    async registerWithEmailAndPassword ({auth, userData, email, password}: {auth: Auth, userData: any, email:string, password: string}): Promise<boolean> {
         try {
             // create firebase user with email and password
             const credential = await createUserWithEmailAndPassword(auth, email, password)
             if(credential.user){
+                this.user = credential.user
                 // save user data in firestore and send email verification message
                 await Promise.all([
-                    sendEmailVerification(credential.user, {
-                        url: verificationUrl!
-                    }),
+                    sendEmailVerification(credential.user),
                     this.save(userData, credential.user.uid)
                 ])
                 return true
@@ -26,6 +50,10 @@ export class Users extends BaseModel {
                 return false
             }
         } catch (error) {
+            // delete account
+            if(this.user){
+                this.deleteAccount(this.user)
+            }
             errorLogger("registerWithEmailAndPassword error: ", error)
             return false
         }
@@ -299,6 +327,15 @@ private sendOTP =  async (resolver: MultiFactorResolver, recaptchaVerifier: Appl
             errorLogger("verifyPasswordResetLink error: ", error)
             return null
         }
+    }
+
+    /**
+     * delete user account
+     * @param user 
+     */
+    async deleteAccount(user: User) {
+        await deleteUser(user)
+        await this.delete(user.uid)
     }
 
 
