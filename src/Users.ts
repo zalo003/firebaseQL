@@ -1,4 +1,4 @@
-import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult, getMultiFactorResolver, User, multiFactor, PhoneAuthProvider, MultiFactorResolver, PhoneMultiFactorGenerator, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
+import { Auth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, signInWithPhoneNumber,  ApplicationVerifier, updatePassword, sendPasswordResetEmail, signOut, ConfirmationResult, getMultiFactorResolver, User, multiFactor, PhoneAuthProvider, MultiFactorResolver, PhoneMultiFactorGenerator, createUserWithEmailAndPassword, sendEmailVerification, applyActionCode, verifyPasswordResetCode } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn } from './constants'
 import { errorLogger } from './helpers'
@@ -210,6 +210,7 @@ export class Users extends BaseModel {
      * @param userCode 
      * @param user 
      * @param onSuccess 
+     * @returns {User | null}
      */
 confirmOTP = async (verifier: MFAVerifier, userCode: string): Promise<User | null> =>{
     try {
@@ -243,7 +244,7 @@ confirmOTP = async (verifier: MFAVerifier, userCode: string): Promise<User | nul
  * @param resolver 
  * @param recaptchaVerifier 
  * @param setter 
- * @returns 
+ * @returns {MFAVerifier | null}
  */
 private sendOTP =  async (resolver: MultiFactorResolver, recaptchaVerifier: ApplicationVerifier, auth: Auth) : Promise<MFAVerifier | null> =>{
     try {
@@ -266,6 +267,39 @@ private sendOTP =  async (resolver: MultiFactorResolver, recaptchaVerifier: Appl
         return null
     }
 }
+
+    /**
+     * Handle email verification for user
+     * @param auth 
+     * @param actionCode 
+     * @returns {error: string | null}
+     */
+    verifyEmail = async (auth: Auth, actionCode: string): Promise<string | null> => {
+        try {
+            // parameter.
+            // Try to apply the email verification code.
+            await applyActionCode(auth, actionCode)
+            return null
+        } catch (error) {
+            errorLogger("verifyEmail error: ", error)
+            return "Code is invalid or expired. Ask the user to verify their email address"
+        }
+    }
+
+    /**
+     * confirm that password reset link is correct
+     * @param auth 
+     * @param actionCode 
+     * @returns {email: string | null} 
+     */
+    verifyPasswordResetLink = async (auth: Auth, actionCode:string) : Promise<string | null> => {
+        try {
+            return await verifyPasswordResetCode(auth, actionCode)
+        } catch (error) {
+            errorLogger("verifyPasswordResetLink error: ", error)
+            return null
+        }
+    }
 
 
 }
