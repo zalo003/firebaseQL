@@ -20,7 +20,6 @@ import {
         applyActionCode, 
         verifyPasswordResetCode, 
         deleteUser,
-        onAuthStateChanged
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
@@ -36,24 +35,18 @@ export class Users extends BaseModel {
      * delete user if registration is not successful
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, email, password, userData }: {auth: Auth, email:string, password: string, userData: dbItems }): Promise<boolean> {
+    async registerWithEmailAndPassword ({auth, email, password, userData }: {auth: Auth, email:string, password: string, userData?: dbItems }): Promise<boolean> {
         try {
             // create firebase user with email and password
             const credential = await createUserWithEmailAndPassword(auth, email, password)
-            onAuthStateChanged(auth, async (user)=>{
-                this.user = credential.user
-                // save user data in firestore and send email verification message
-                if(user){
-                    const saved = await Promise.all([
-                        sendEmailVerification(user).catch(e=>errorLogger("email sending error: ", e)),
-                        this.save(userData, user.uid)
-                     ])
-                     errorLogger("we created user: ", saved, " verified: ", user.emailVerified)
-                } else {
-                    // there was no user, delete account
-                    this.deleteAccount(credential.user)
-                }
-            })
+            this.user = credential.user
+            
+            // send verification email
+            sendEmailVerification(credential.user)
+            // create firestore document
+            if(userData){
+                await this.save(userData, credential.user.uid)
+            }
             return true
         } catch (error) {
             // delete account
@@ -343,6 +336,4 @@ private sendOTP =  async (resolver: MultiFactorResolver, recaptchaVerifier: Appl
         await deleteUser(user)
         await this.delete(user.uid)
     }
-
-
 }
