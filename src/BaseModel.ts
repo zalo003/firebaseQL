@@ -1,6 +1,7 @@
 import { Firestore, WriteBatch, QueryDocumentSnapshot, DocumentData, doc, collection, DocumentReference, CollectionReference, onSnapshot, where, QueryConstraint, orderBy, getDoc, startAfter, limit, query, updateDoc, getDocs, addDoc, setDoc, deleteDoc, increment, getCountFromServer } from "firebase/firestore";
 import { Model } from "./ModelInterface";
 import { dbItems, whereClause } from "./constants";
+import { errorLogger } from "./helpers";
 
 export class BaseModel implements Model {
 
@@ -261,6 +262,7 @@ export class BaseModel implements Model {
             }
                     
         } catch (error) {
+            errorLogger("save error: ", error)
             return false
         }
     }

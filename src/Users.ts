@@ -19,36 +19,42 @@ import {
         sendEmailVerification, 
         applyActionCode, 
         verifyPasswordResetCode, 
-        deleteUser
+        deleteUser,
+        onAuthStateChanged
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
-import { MFAVerifier, QueryReturn } from './constants'
+import { MFAVerifier, QueryReturn, dbItems } from './constants'
 import { errorLogger } from './helpers'
 
 export class Users extends BaseModel {
 
     private user?: User
+    protected table: string = 'users';
 
     /**
-     * register user, save data to firestore and send email verification
+     * register user and send email verification
      * delete user if registration is not successful
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, userData, email, password}: {auth: Auth, userData: any, email:string, password: string}): Promise<boolean> {
+    async registerWithEmailAndPassword ({auth, email, password, userData }: {auth: Auth, email:string, password: string, userData: dbItems }): Promise<boolean> {
         try {
             // create firebase user with email and password
             const credential = await createUserWithEmailAndPassword(auth, email, password)
-            if(credential.user){
+            onAuthStateChanged(auth, async (user)=>{
                 this.user = credential.user
                 // save user data in firestore and send email verification message
-                await Promise.all([
-                    sendEmailVerification(credential.user),
-                    this.save(userData, credential.user.uid)
-                ])
-                return true
-            } else {
-                return false
-            }
+                if(user){
+                    const saved = await Promise.all([
+                        sendEmailVerification(user).catch(e=>errorLogger("email sending error: ", e)),
+                        this.save(userData, user.uid)
+                     ])
+                     errorLogger("we created user: ", saved, " verified: ", user.emailVerified)
+                } else {
+                    // there was no user, delete account
+                    this.deleteAccount(credential.user)
+                }
+            })
+            return true
         } catch (error) {
             // delete account
             if(this.user){
