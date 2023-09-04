@@ -167,7 +167,7 @@ export class BaseModel implements Model {
      * @param id 
      * @returns 
      */
-    async update(data: dbItems, id: string): Promise<boolean> {
+    async update(data: any, id: string): Promise<boolean> {
         delete data.reference
         const docRef = doc(this.firestorDB!, this.table, id)
         return await updateDoc(docRef, data)
@@ -248,7 +248,7 @@ export class BaseModel implements Model {
      * create or update data
      * @param data 
      */
-    async save(data: dbItems, id?: string | undefined): Promise<string | boolean> {
+    async save(data: any, id?: string | undefined): Promise<string | boolean> {
         delete data.reference
         try {
             if(id===undefined){

@@ -21,7 +21,7 @@ export enum UPLOADTYPES {
 
 
 export type dbItems = {
-    reference?: string
+    reference?: string,
 }
 
 export type FunctionReturn = {
