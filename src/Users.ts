@@ -374,3 +374,14 @@ export class Users extends BaseModel {
         }
     }
 }
+
+// mAuth.sendPasswordResetEmail(email)
+//   .addOnSuccessListener(new OnSuccessListener() {
+//       public void onSuccess(Void result) {
+//         // send email succeeded
+//       }
+//    }).addOnFailureListener(new OnFailureListener() {
+//       public onFailure(Exception e)
+//         // something bad happened
+//       }
+//    });

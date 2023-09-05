@@ -1,7 +1,7 @@
 import { FirebaseApp } from "firebase/app"
 import { FirebaseStorage, getStorage, ref, StorageReference, uploadString, getDownloadURL, uploadBytesResumable } from "firebase/storage"
 import { UPLOADTYPES } from "./constants"
-import { generateRandomString } from "./helpers"
+import { errorLogger, generateRandomString } from "./helpers"
 
 export class StorageUpload {
 
@@ -130,15 +130,20 @@ export class StorageUpload {
      */
     async doUpload(): Promise<string | boolean> {
        if(this.uploadError){
+            errorLogger(this.uploadError)
             return false
        }else{
-        const reference = ref(this.storage, this.fullPath);
-            if(typeof(this.file)==='string'){
-                return await this.uploadAsString(reference)
-            }else{
-                return await this.uploadAsFile(reference)
+            try {
+                const reference = ref(this.storage, this.fullPath);
+                if(typeof(this.file)==='string'){
+                    return await this.uploadAsString(reference)
+                }else{
+                    return await this.uploadAsFile(reference)
+                }
+            } catch (error) {
+                errorLogger("doUpload: ", error)
+                return false
             }
-                
        }
     }
 
@@ -156,6 +161,7 @@ export class StorageUpload {
                 return false
             }
         } catch (error) {
+            errorLogger("UploadAsString: ", error)
             return false
         }
     }
@@ -173,6 +179,7 @@ export class StorageUpload {
                 return false
             }
         } catch (error) {
+            errorLogger("uploadAsFile: ", error)
             return false
         }
     }
