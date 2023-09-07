@@ -24,6 +24,7 @@ import {
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
 import { errorLogger } from './helpers'
+import { DocumentData } from 'firebase/firestore'
 
 export class Users extends BaseModel {
 
@@ -179,8 +180,8 @@ export class Users extends BaseModel {
     * create and validate users
     * @param param0 
     */
-   async loginWithMultiAuthFactor({email, password, auth, recaptcha, phoneNumber, persist = true, verifyEmail = false}: 
-    {email: string, password: string, auth: Auth, recaptcha: ApplicationVerifier, phoneNumber?:string, persist?: boolean, verifyEmail?: boolean}): Promise<MFAVerifier | null>{
+   async loginWithMultiAuthFactor({email, password, auth, recaptcha, getNumber, persist = true, verifyEmail = false}: 
+    {email: string, password: string, auth: Auth, recaptcha: ApplicationVerifier, getNumber?:boolean, persist?: boolean, verifyEmail?: boolean}): Promise<MFAVerifier | null>{
         
         try {
             // persist user in session
@@ -195,10 +196,15 @@ export class Users extends BaseModel {
                     await this.sendEmailVerification(credential.user)
                     throw new Error("Email is not verified")
                 }
-                const user = phoneNumber? {...credential.user, phoneNumber}: credential.user
+
+                let phoneNumber
+                if(getNumber){
+                    phoneNumber = await this.getPhoneNumber(credential.user.uid)
+                }
                 // user is not MFA enabled
                 // enroll user with multi-factor auth if user is admin
-                const verificationId = await this.setMultiFactorEnrollment(user, recaptcha, auth)
+                const user = credential.user
+                const verificationId = await this.setMultiFactorEnrollment(user, recaptcha, auth, phoneNumber ?? credential.user.phoneNumber!)
                 if(verificationId){
                     return {verificationId, user}
                 } else {
@@ -210,11 +216,6 @@ export class Users extends BaseModel {
                 return null
             }            
         } catch (e) {
-            // user needs to verify their email address
-            if(verifyEmail && !auth.currentUser?.emailVerified){
-                await this.sendEmailVerification(auth.currentUser!)
-                throw new Error("Email is not verified")
-            }
             errorLogger("loginWithMultiAuthFactor error: ", e)
             const error = e as any
             if (error.code === 'auth/multi-factor-auth-required') {
@@ -226,18 +227,34 @@ export class Users extends BaseModel {
         }
    }
 
+   /**
+    * fetch phone number from database
+    * @param uid 
+    * @returns 
+    */
+   private getPhoneNumber = async (uid: string): Promise<string | null>=>{
+        let phoneNumber = null
+        const dbUser = await this.find(uid)
+        if(dbUser){
+            const dUser = dbUser as DocumentData
+            phoneNumber = dUser.phoneNumber
+        }
+        return phoneNumber
+   }
+
     /**
      * send OTP to enable 2 factor authentication
      * @param user 
      * @param recaptchaverifier 
      */
-    private setMultiFactorEnrollment = async (user: User, recaptchaverifier: ApplicationVerifier, auth: Auth): Promise<string | null> =>{
+    private setMultiFactorEnrollment = async (user: User, recaptchaverifier: ApplicationVerifier, auth: Auth, phoneNumber: string): Promise<string | null> =>{
         try {
             // get session
             const multifactorSession = await multiFactor(user).getSession()
             // specify the phone number and pass the MFA session
+            errorLogger("phone number: ", phoneNumber)
             const phoneInfoOptions = {
-                phoneNumber: user.phoneNumber,
+                phoneNumber: phoneNumber,
                 session: multifactorSession
             };
             const phoneAuthProvider = new PhoneAuthProvider(auth);
@@ -374,14 +391,3 @@ export class Users extends BaseModel {
         }
     }
 }
-
-// mAuth.sendPasswordResetEmail(email)
-//   .addOnSuccessListener(new OnSuccessListener() {
-//       public void onSuccess(Void result) {
-//         // send email succeeded
-//       }
-//    }).addOnFailureListener(new OnFailureListener() {
-//       public onFailure(Exception e)
-//         // something bad happened
-//       }
-//    });

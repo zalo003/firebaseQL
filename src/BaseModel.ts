@@ -7,7 +7,7 @@ export class BaseModel implements Model {
 
     protected firestorDB?: Firestore
     // Get a new write batch
-    protected batch?: WriteBatch = writeBatch(this.firestorDB!)
+    // protected batch?: WriteBatch
 
     // Database table name
     protected table: string = '';
@@ -22,6 +22,7 @@ export class BaseModel implements Model {
      */
     async saveBatch ({ data }: { data: object[]}): Promise<boolean> {
         try {
+            const batch = writeBatch(this.firestorDB!)
             const obj = data as dbItems[]
             obj.forEach((document)=>{
                 const docRef = document.reference? 
@@ -31,9 +32,9 @@ export class BaseModel implements Model {
                     delete document.reference
                 }
                 
-                this.batch?.set(docRef, document)
+                batch.set(docRef, document)
             })
-            await this.batch?.commit()
+            await batch.commit()
             return true
         } catch (error) {
             errorLogger("saveBatch: ", error)
@@ -47,13 +48,14 @@ export class BaseModel implements Model {
      */
     async updateBatch({ data }: { data: object[] }): Promise<boolean> {
         try {
+            const batch = writeBatch(this.firestorDB!)
             const obj = data as dbItems[]
             obj.forEach((document)=>{
                 const docRef = doc(this.firestorDB!, this.table, document.reference!)
                 delete document.reference
-                this.batch?.update(docRef, document as object)
+                batch.update(docRef, document as object)
             })
-            await this.batch?.commit()
+            await batch.commit()
             return true
         } catch (error) {
             errorLogger("updateBatch: ", error)
@@ -67,11 +69,12 @@ export class BaseModel implements Model {
      */
     async deleteBatch({ ids }: { ids: string[]  }): Promise<boolean> {
         try {
+            const batch = writeBatch(this.firestorDB!)
             ids.forEach((id)=>{
                 const docRef = doc(this.firestorDB!, this.table, id)
-                this.batch?.delete(docRef)
+                batch.delete(docRef)
             })
-            await this.batch!.commit()
+            await batch.commit()
             return true
         } catch (error) {
             errorLogger("deleteBatch: ", error)
@@ -237,7 +240,7 @@ export class BaseModel implements Model {
             }
             // add offset
             if(offset){
-                const off  =  await getDoc(doc(this.firestorDB!, offset));
+                const off  =  await getDoc(doc(this.firestorDB!, this.table, offset));
                 constraint.push(startAfter(off))
             }
             // add limit
