@@ -40,7 +40,7 @@ export interface Model {
      * Realtime data listener
      * @param where 
      */
-    stream(callBack: (data: DocumentData | DocumentData[])=>void, errorHandler: (error?: unknown)=>void, id?: string, ):  void
+    stream(callBack: (data: DocumentData | DocumentData[]| undefined)=>void, errorHandler: (error?: unknown)=>void, id?: string, ):  void
 
     /**
      * Stream data with where clause

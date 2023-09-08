@@ -88,7 +88,7 @@ export class BaseModel implements Model {
      * Get realtime update from the database
      * @param id 
      */
-    stream(callBack: (data:  DocumentData | DocumentData[])=>void, errorHandler:(error?: unknown)=>void, id?: string ): void { 
+    stream(callBack: (data:  DocumentData | DocumentData[] | undefined)=>void, errorHandler:(error?: unknown)=>void, id?: string ): void { 
     
         const ref:DocumentReference<DocumentData> | CollectionReference<DocumentData> = id? 
             doc(this.firestorDB!, this.table, id):
@@ -96,7 +96,7 @@ export class BaseModel implements Model {
         try {
             if(id){
                 onSnapshot(ref as DocumentReference, (doc) => {
-                    callBack({...doc.data()!, reference: ref.id})
+                    callBack({...doc.data(), reference: ref.id})
                 })
             }else{
                 onSnapshot(ref as CollectionReference, (snapShot) => {
@@ -109,6 +109,7 @@ export class BaseModel implements Model {
                 })
             }
         } catch (error) {
+            errorLogger('stream: ', error)
             errorHandler(error)
         }
     }
@@ -156,6 +157,7 @@ export class BaseModel implements Model {
                 }))
             })
         } catch (error) {
+            errorLogger('streamWhere: ', error)
             errorHander(error)
         }
     }
