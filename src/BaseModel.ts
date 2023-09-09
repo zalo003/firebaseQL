@@ -1,4 +1,13 @@
-import { Firestore, WriteBatch, QueryDocumentSnapshot, DocumentData, doc, collection, DocumentReference, CollectionReference, onSnapshot, where, QueryConstraint, orderBy, getDoc, startAfter, limit, query, updateDoc, getDocs, addDoc, setDoc, deleteDoc, increment, getCountFromServer, writeBatch } from "firebase/firestore";
+import { Firestore, 
+    QueryDocumentSnapshot, 
+    DocumentData, doc, 
+    collection, DocumentReference, 
+    CollectionReference, onSnapshot, where, 
+    QueryConstraint, orderBy, getDoc, startAfter, 
+    limit, query, updateDoc, getDocs, addDoc, 
+    setDoc, deleteDoc, increment, getCountFromServer, 
+    writeBatch, FieldPath
+} from "firebase/firestore";
 import { Model } from "./ModelInterface";
 import { dbItems, whereClause } from "./constants";
 import { errorLogger } from "./helpers";
@@ -202,16 +211,24 @@ export class BaseModel implements Model {
      * Get all items from database
      * @returns void
      */
-    async findAll() : Promise<DocumentData[]> {
+    async findAll(ids?: string[]) : Promise<DocumentData[]> {
         try {
-            const snaptshots =  await getDocs(collection(this.firestorDB!, this.table))
-            if(!snaptshots.empty){
-                return snaptshots.docs.map((document)=>{
-                    return {...document.data(), reference: document.id}
-                })
-            }else{
-                return []
+            const colRef = collection(this.firestorDB!, this.table)
+            if(ids){
+                return Promise.all([
+                    ids.map(id=>this.find(id))
+                ])
+            } else {
+                const snaptshots =  await getDocs(colRef)
+                if(!snaptshots.empty){
+                    return snaptshots.docs.map((document)=>{
+                        return {...document.data(), reference: document.id}
+                    })
+                }else{
+                    return []
+                }
             }
+            
         } catch (error) {
             errorLogger('findAll: ', error)
             return []

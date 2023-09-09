@@ -7,7 +7,7 @@ export interface Model {
     find(id: string): Promise<DocumentData | boolean>
 
     // select all from database
-    findAll(): Promise<DocumentData[]>
+    findAll(ids?: string[]): Promise<DocumentData[]>
 
     // find item by where clause
     findWhere({wh, lim, order, offset} : 
