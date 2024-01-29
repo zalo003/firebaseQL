@@ -119,6 +119,9 @@ export function convertUnicode(input: string) {
 * @returns 
 */
 export const moneyFormatter = (x:number | string, shorten:boolean = true, decimailPlaces?: number):string => {
+  if(x===undefined){
+    return ""
+  }
   const base: number = 1000000
   // number is less than a million
   const num = parseInt(x as string)

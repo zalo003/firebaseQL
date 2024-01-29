@@ -29,7 +29,6 @@ import { DocumentData } from 'firebase/firestore'
 export class Users extends BaseModel {
 
     private user?: User
-    protected table: string = 'users';
 
     /**
      * register user and send email verification

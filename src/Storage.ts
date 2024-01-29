@@ -21,7 +21,7 @@ export class StorageUpload {
        if(file){
         // set user additional path
         this.additionalPath = path
-        this.maxSize = maxSize ?? 10000
+        this.maxSize = maxSize ?? 1000000
         // set file globally
         this.file = file
          // validate file

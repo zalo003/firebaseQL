@@ -180,11 +180,27 @@ export class BaseModel implements Model {
             const ref = doc(this.firestorDB!, this.table, id)
             const docSnap = await getDoc(ref)
             if (docSnap.exists()) {
-                return {...docSnap.data(), reference: ref.id}
+                return {...docSnap.data(), reference: id}
             } 
             return false
         } catch (error) {
             errorLogger("find: ", error)
+            return false
+        }
+    }
+
+    /**
+     * check if data exists
+     * @param id 
+     * @returns 
+     */
+    async dataExists(id: string): Promise<boolean> {
+        try {
+            const ref = doc(this.firestorDB!, this.table, id);
+            const docSanp = await getDoc(ref);
+            return docSanp.exists()
+        } catch (error) {
+            errorLogger("dataExists: ", error)
             return false
         }
     }
@@ -215,9 +231,14 @@ export class BaseModel implements Model {
         try {
             const colRef = collection(this.firestorDB!, this.table)
             if(ids){
-                return Promise.all([
-                    ids.map(id=>this.find(id))
-                ])
+                const results: DocumentData[] = []
+                for (let id of ids){
+                    const item = await this.find(id)
+                    if(item){
+                        results.push(item as DocumentData)
+                    }
+                }
+                return results
             } else {
                 const snaptshots =  await getDocs(colRef)
                 if(!snaptshots.empty){
@@ -297,9 +318,7 @@ export class BaseModel implements Model {
                 const documentRef = await addDoc(collection(this.firestorDB!, this.table), data)
                 return documentRef.id
             } else {
-                await setDoc(doc(this.firestorDB!, this.table, id!), data).then(()=>id).catch((e)=>{
-                    throw new Error(`Unable to save: ${e}`)
-                })
+                await setDoc(doc(this.firestorDB!, this.table, id!), data)
                 return id!
             }
                     
