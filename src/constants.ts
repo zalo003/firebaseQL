@@ -36,9 +36,9 @@ export enum AUTH_PROVIDERS {
 }
 
 export type QueryReturn = {
-    result: any,
-    status: boolean,
-    error?: any
+    data?: any,
+    status: 'error' | 'success',
+    message: string
 }
 
 export type MFAVerifier = {

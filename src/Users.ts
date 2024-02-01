@@ -66,8 +66,6 @@ export class Users extends BaseModel {
      */
      async login ({email, password, auth, persist = false, verifyEmail = false}: 
         {email: string, password: string, auth: Auth,  persist?: boolean, verifyEmail?: boolean}): Promise<QueryReturn> {
-
-        let result : QueryReturn = {result: undefined, status: false}
         
         try {
             // persist user in session
@@ -78,21 +76,19 @@ export class Users extends BaseModel {
             const userAuth = await signInWithEmailAndPassword(auth, email, password)
             if(userAuth){
                 if(verifyEmail && !userAuth.user.emailVerified){
-                    await this.sendEmailVerification(userAuth.user)
-                    result.status = false
-                    result.error = "Email is not verified"
+                    // await this.sendEmailVerification(userAuth.user)
+                    return {message: "Email is not verified", status: 'error'}
                 } else {
-                    result.status = true
-                    // find user in table
-                    result.result =  userAuth.user
+                    return {message: "User successfully logged in", status: 'success', data: userAuth.user}
                 }
+            } else {
+                return {message: "Unknown account", status: 'error'}
             }
         } catch (error) {
             errorLogger("login error: ", error)
-            result.error = error
+            return {message: "Unable to login user", status: 'error'}
         }
 
-        return result
     }
 
     /**
