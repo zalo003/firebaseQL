@@ -25,8 +25,8 @@ export const generateRandomString = (length: number): string => {
  * Check if firebase session is still active
  * @returns {string | null}
  */
-export const getFirebaseSessionKey = (): string | null =>{
-    const sess = window.sessionStorage as object
+export const getFirebaseSessionKey = (method: 'local' | 'session'): string | null =>{
+    const sess = method==='session'? window.sessionStorage: window.localStorage as object
 		const sessKeys = Object.keys(sess)
 		const ses = sessKeys.find(item => fbsession.test(item))
     if(typeof(ses)!=='undefined'){

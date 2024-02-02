@@ -20,6 +20,7 @@ import {
         applyActionCode, 
         verifyPasswordResetCode, 
         deleteUser,
+        browserLocalPersistence,
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
@@ -64,13 +65,13 @@ export class Users extends BaseModel {
      * @param { string , string, boolean} credentials - login credentials 
      * @returns {Promise<QueryReturn>}
      */
-     async login ({email, password, auth, persist = false, verifyEmail = false}: 
-        {email: string, password: string, auth: Auth,  persist?: boolean, verifyEmail?: boolean}): Promise<QueryReturn> {
+     async login ({email, password, auth, persist = 'session', verifyEmail = false}: 
+        {email: string, password: string, auth: Auth,  persist?: 'session' | 'local', verifyEmail?: boolean}): Promise<QueryReturn> {
         
         try {
             // persist user in session
             if(persist){
-                await setPersistence(auth, browserSessionPersistence)
+                await setPersistence(auth, persist==='local'? browserLocalPersistence:browserSessionPersistence)
             }
             // verify user's email and password is correct
             const userAuth = await signInWithEmailAndPassword(auth, email, password)
