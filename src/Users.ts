@@ -24,7 +24,7 @@ import {
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
-import { errorLogger } from './helpers'
+// import { throw new Error } from './helpers'
 import { DocumentData } from 'firebase/firestore'
 
 export class Users extends BaseModel {
@@ -54,8 +54,7 @@ export class Users extends BaseModel {
             if(this.user){
                 this.deleteAccount(this.user)
             }
-            errorLogger("registerWithEmailAndPassword error: ", error)
-            return false
+            throw new Error(`registerWithEmailAndPassword error: , ${error}`)
         }
     }
 
@@ -86,8 +85,7 @@ export class Users extends BaseModel {
                 return {message: "Unknown account", status: 'error'}
             }
         } catch (error) {
-            errorLogger("login error: ", error)
-            return {message: "Unable to login user", status: 'error'}
+            throw new Error(`login error: , ${error}`);
         }
 
     }
@@ -102,8 +100,7 @@ export class Users extends BaseModel {
             // persist user in session
             return await signInWithPhoneNumber(auth, phoneNumber, appVerifier)
         } catch (error) {
-            errorLogger("signInWithPhoneNumber error: ", error)
-            return false
+            throw new Error(`signInWithPhoneNumber error: , ${error}`);
         }
     }
 
@@ -122,8 +119,7 @@ export class Users extends BaseModel {
                 return false
             }
         } catch (error) {
-            errorLogger("isLoggedIn error: ", error)
-            return false
+            throw new Error(`isLoggedIn error: , ${error}`)
         }
     }
 
@@ -137,8 +133,7 @@ export class Users extends BaseModel {
             await updatePassword(auth.currentUser!, newPassword)
             return true
         } catch (e) {
-            errorLogger("resetPassword error: ", e)
-            return false
+            throw new Error(`resetPassword error: , ${e}`)
         }
     }
 
@@ -152,8 +147,7 @@ export class Users extends BaseModel {
             await sendPasswordResetEmail(auth, email)
             return true
         } catch (e) {
-            errorLogger("sendPasswordResetMessage error: ", e)
-            return false
+            throw new Error(`sendPasswordResetMessage error: , ${e}`)
         }
     }
 
@@ -167,8 +161,7 @@ export class Users extends BaseModel {
             await signOut(auth)
             return true
         } catch (e) {
-            errorLogger("logout error: ", e)
-            return false
+            throw new Error(`logout error: , ${e}`)
         }
     }
 
@@ -212,14 +205,14 @@ export class Users extends BaseModel {
                 return null
             }            
         } catch (e) {
-            errorLogger("loginWithMultiAuthFactor error: ", e)
             const error = e as any
             if (error.code === 'auth/multi-factor-auth-required') {
                 // The user is a multi-factor user. Second factor challenge is required.
                 const resolver = getMultiFactorResolver(auth, error);
                 return await this.sendOTP(resolver, recaptcha, auth)
-            } 
-            return null
+            } else {
+                throw new Error(`loginWithMultiAuthFactor error: ${error}`)
+            }
         }
    }
 
@@ -248,7 +241,6 @@ export class Users extends BaseModel {
             // get session
             const multifactorSession = await multiFactor(user).getSession()
             // specify the phone number and pass the MFA session
-            errorLogger("phone number: ", phoneNumber)
             const phoneInfoOptions = {
                 phoneNumber: phoneNumber,
                 session: multifactorSession
@@ -257,8 +249,7 @@ export class Users extends BaseModel {
             // Send SMS verification code.
         return await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaverifier);
         } catch (e) {
-            errorLogger("setMultiFactorEnrollment error: ", e)
-            return null
+            throw new Error(`setMultiFactorEnrollment error: , ${e}`)
         }
     }
 
@@ -292,8 +283,7 @@ export class Users extends BaseModel {
             return user
         } catch (error) {
             // otp is not correct
-            errorLogger("confirmOTP error: ", error)
-            return null
+            throw new Error(`confirmOTP error: , ${error}`)
         }
     }
 
@@ -321,8 +311,7 @@ export class Users extends BaseModel {
                 return null
             } 
         } catch (e) {
-            errorLogger("sendOTP error: ", e)
-            return null
+            throw new Error(`sendOTP error: , ${e}`)
         }
     }
 
@@ -339,8 +328,7 @@ export class Users extends BaseModel {
             await applyActionCode(auth, actionCode)
             return null
         } catch (error) {
-            errorLogger("verifyEmail error: ", error)
-            return "Code is invalid or expired. Ask the user to verify their email address"
+            throw new Error(`verifyEmail error: , ${error}`)
         }
     }
 
@@ -354,8 +342,7 @@ export class Users extends BaseModel {
         try {
             return await verifyPasswordResetCode(auth, actionCode)
         } catch (error) {
-            errorLogger("verifyPasswordResetLink error: ", error)
-            return null
+            throw new Error(`verifyPasswordResetLink error: , ${error}`)
         }
     }
 
@@ -364,8 +351,14 @@ export class Users extends BaseModel {
      * @param user 
      */
     async deleteAccount(user: User) {
-        await deleteUser(user)
-        await this.delete(user.uid)
+        try {
+            await Promise.all([
+                 deleteUser(user),
+                this.delete(user.uid)
+            ])
+        } catch (error) {
+            throw new Error(`deleteAccount error: ,${error}`)
+        }
     }
 
     /**

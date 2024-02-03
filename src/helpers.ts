@@ -1,5 +1,4 @@
 import { redirect } from "react-router-dom";
-import { fbsession } from "./constants";
 
 /**
  * Generates random strings of n length
@@ -25,25 +24,25 @@ export const generateRandomString = (length: number): string => {
  * Check if firebase session is still active
  * @returns {string | null}
  */
-export const getFirebaseSessionKey = (method: 'local' | 'session'): string | null =>{
-    const sess = method==='session'? window.sessionStorage: window.localStorage as object
-		const sessKeys = Object.keys(sess)
-		const ses = sessKeys.find(item => fbsession.test(item))
-    if(typeof(ses)!=='undefined'){
-      return ses
-    }
-    return null
-}
+// export const getFirebaseSessionKey = (method: 'local' | 'session'): string | null =>{
+//     const sess = method==='session'? window.sessionStorage: window.localStorage as object
+// 		const sessKeys = Object.keys(sess)
+// 		const ses = sessKeys.find(item => fbsession.test(item))
+//     if(typeof(ses)!=='undefined'){
+//       return ses
+//     }
+//     return null
+// }
 
 // check if environment is production or development
-export const isDevelopment = window.location.hostname==='localhost'
+// export const isDevelopment = window.location.hostname==='localhost'
 // export const baseUrl = isDevelopment ? 'http://localhost:3000'? undefined
 
-export const errorLogger = (error: any, ...optionalParams: any[])=>{
-  if(isDevelopment){
-    console.log(error, optionalParams)
-  }
-}
+// export const throw new Error = (error: any, ...optionalParams: any[])=>{
+//   if(isDevelopment){
+//     console.log(error, optionalParams)
+//   }
+// }
 
 
 /**

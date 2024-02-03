@@ -9,7 +9,10 @@
     "esm",
     "src"
   ],
-  "repository": "https://github.com/zalo003/firebaseQL.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zalo003/firebaseQL.git"
+  },
   "author": "Solomon Gbadamosi <exampaqs@gmail.com>",
   "license": "MIT",
   "private": false,

@@ -40,7 +40,7 @@ export interface Model {
      * Realtime data listener
      * @param where 
      */
-    stream(callBack: (data: DocumentData | DocumentData[]| undefined)=>void, errorHandler: (error?: unknown)=>void, id?: string, ):  void
+    stream(callBack: (data: DocumentData | DocumentData[]| undefined)=>void, id?: string, ):  void
 
     /**
      * Stream data with where clause
@@ -50,7 +50,7 @@ export interface Model {
      * @param lim 
      * @param order 
      */
-    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): void 
+    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: string, offset?: string): void 
 
     /**
      * count data in database
@@ -70,7 +70,7 @@ export interface Model {
      * Update multiple documents
      * @param param0 
      */
-    updateBatch({data}:{data: object[], callBack:()=>void, errorHandler:(error?: any)=>void}): Promise<boolean>
+    updateBatch({data}:{data: object[], callBack:()=>void }): Promise<boolean>
 
     /**
      * Delete multiple documents
@@ -78,6 +78,6 @@ export interface Model {
      */
     deleteBatch({ids}:{ids: string[]}): Promise<boolean>
 
-    incrementDecrement({dbReference, key, isIncrement = true, incrementalValue}: 
+    incrementDecrement({dbReference, key, isIncrement, incrementalValue}: 
         {dbReference: string, key:string, isIncrement?:boolean, incrementalValue?: number} ): Promise<boolean>
 }

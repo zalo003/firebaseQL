@@ -6,11 +6,10 @@ import { Firestore,
     QueryConstraint, orderBy, getDoc, startAfter, 
     limit, query, updateDoc, getDocs, addDoc, 
     setDoc, deleteDoc, increment, getCountFromServer, 
-    writeBatch, FieldPath
+    writeBatch
 } from "firebase/firestore";
 import { Model } from "./ModelInterface";
 import { dbItems, whereClause } from "./constants";
-import { errorLogger } from "./helpers";
 
 export class BaseModel implements Model {
 
@@ -46,8 +45,7 @@ export class BaseModel implements Model {
             await batch.commit()
             return true
         } catch (error) {
-            errorLogger("saveBatch: ", error)
-            return false
+            throw new Error(`saveBatch: , ${error}`)
         }
     }
 
@@ -67,8 +65,7 @@ export class BaseModel implements Model {
             await batch.commit()
             return true
         } catch (error) {
-            errorLogger("updateBatch: ", error)
-            return false
+            throw new Error(`updateBatch: , ${error}`)
         }
     }
 
@@ -86,8 +83,7 @@ export class BaseModel implements Model {
             await batch.commit()
             return true
         } catch (error) {
-            errorLogger("deleteBatch: ", error)
-            return false
+            throw new Error(`deleteBatch: , ${error}`)
         }
     }
 
@@ -97,7 +93,7 @@ export class BaseModel implements Model {
      * Get realtime update from the database
      * @param id 
      */
-    stream(callBack: (data:  DocumentData | DocumentData[] | undefined)=>void, errorHandler:(error?: unknown)=>void, id?: string ): void { 
+    stream(callBack: (data:  DocumentData | DocumentData[] | undefined)=>void, id?: string ): void { 
     
         const ref:DocumentReference<DocumentData> | CollectionReference<DocumentData> = id? 
             doc(this.firestorDB!, this.table, id):
@@ -118,8 +114,7 @@ export class BaseModel implements Model {
                 })
             }
         } catch (error) {
-            errorLogger('stream: ', error)
-            errorHandler(error)
+            throw new Error(`stream: , ${error}`)
         }
     }
 
@@ -129,7 +124,7 @@ export class BaseModel implements Model {
      * @param lim 
      * @param order 
      */
-    async streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  errorHander: (error?: unknown)=>void, lim?:number, order?: string, offset?: string): Promise<void> {
+    async streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: string, offset?: string): Promise<void> {
         try {
             const whereParameter = wh.map(clause=> where(
                 clause.key, 
@@ -166,8 +161,7 @@ export class BaseModel implements Model {
                 }))
             })
         } catch (error) {
-            errorLogger('streamWhere: ', error)
-            errorHander(error)
+            throw new Error(`streamWhere: , ${error}`)
         }
     }
 
@@ -184,8 +178,7 @@ export class BaseModel implements Model {
             } 
             return false
         } catch (error) {
-            errorLogger("find: ", error)
-            return false
+            throw new Error(`find: , ${error}`)
         }
     }
 
@@ -200,8 +193,7 @@ export class BaseModel implements Model {
             const docSanp = await getDoc(ref);
             return docSanp.exists()
         } catch (error) {
-            errorLogger("dataExists: ", error)
-            return false
+            throw new Error(`dataExists: , ${error}`)
         }
     }
 
@@ -218,8 +210,7 @@ export class BaseModel implements Model {
             await updateDoc(docRef, data)
             return true
         } catch (error) {
-            errorLogger("update: ", error)
-            return false
+            throw new Error(`update: , ${error}`)
         }
     }
 
@@ -251,8 +242,7 @@ export class BaseModel implements Model {
             }
             
         } catch (error) {
-            errorLogger('findAll: ', error)
-            return []
+            throw new Error(`findAll: , ${error}`)
         }
     }
 
@@ -302,7 +292,7 @@ export class BaseModel implements Model {
             }else{ return [] }
             
         } catch (error) {
-            errorLogger(error)
+            throw new Error(`findWhere: ${error}`)
             return []
         }
     }
@@ -323,8 +313,7 @@ export class BaseModel implements Model {
             }
                     
         } catch (error) {
-            errorLogger("save error: ", error)
-            return false
+            throw new Error(`save error: , ${error}`)
         }
     }
 
@@ -337,8 +326,7 @@ export class BaseModel implements Model {
             await deleteDoc(doc(this.firestorDB!, this.table, id))
             return true
         } catch (error) {
-            errorLogger("delete: ", error)
-            return false
+            throw new Error(`delete: , ${error}`)
         }
     }
 
@@ -355,8 +343,7 @@ export class BaseModel implements Model {
                 await updateDoc(docRef, {[key]: increment(value)})
                 return true
             } catch (error) {
-                errorLogger("incrementDecrement: ", error)
-                return false
+                throw new Error(`incrementDecrement: , ${error}`)
             }
     }
 
@@ -381,8 +368,7 @@ export class BaseModel implements Model {
         const aggregate = await getCountFromServer(qry)
         return aggregate.data().count
         } catch (error) {
-            errorLogger(error)
-            return 0
+            throw new Error(`countData error: ,${error}`)
         }
     }
 }
