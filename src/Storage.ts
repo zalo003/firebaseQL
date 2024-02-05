@@ -51,7 +51,7 @@ export class StorageUpload {
             }else if(storageRef===UPLOADTYPES.VIDEOS){
                 goodType = file.type==='video/mp4'
             } else if (storageRef===UPLOADTYPES.AUDIOS){
-                goodType = file.type==='audio/mp3'
+                goodType = file.type==='audio/mp3' || file.type==='audio/mpeg'
             }
             goodSize =  file.size > 0 && file.size <= this.maxSize!
         }else{
@@ -151,7 +151,7 @@ export class StorageUpload {
                     return await this.uploadAsFile(reference)
                 }
             } catch (error) {
-                throw new Error(`doUPload Error: ,${error}, path: ${this.fullPath}`)
+                throw new Error(`doUPload Error: ,${error}, path: ${this.fullPath}, db: ${this.storage}`)
             }
        }
     }
