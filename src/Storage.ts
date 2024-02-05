@@ -127,10 +127,11 @@ export class StorageUpload {
     // generate new file name and extension
     private setFilePath = (ref: UPLOADTYPES, ext?: string): void => {
         const d = new Date()
-        const fileExtension:string = ref===UPLOADTYPES.IMAGES?'.'+ext:(ref===UPLOADTYPES.DOCUMENTS?'.pdf':'.mp4')
+        const fileExtension:string = ref===UPLOADTYPES.IMAGES?'.'+ext:(ref===UPLOADTYPES.DOCUMENTS?'.pdf':(
+            ref===UPLOADTYPES.VIDEOS ? '.mp4': '.mp3'
+        ));
         const fileName = generateRandomString(30)
-        this.fullPath = ref.concat(`/`, 
-            `${this.additionalPath}/`, 
+        this.fullPath = ref.concat(`/`,`${this.additionalPath}/`, 
             `${fileName}_${d.getTime()}${fileExtension}`)
     }
 
@@ -150,7 +151,7 @@ export class StorageUpload {
                     return await this.uploadAsFile(reference)
                 }
             } catch (error) {
-                throw new Error(`doUPload Error: ,${error}`)
+                throw new Error(`doUPload Error: ,${error}, path: ${this.fullPath}`)
             }
        }
     }
