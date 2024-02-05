@@ -1,6 +1,6 @@
 {
   "name": "firebaseql",
-  "version": "2.4.2",
+  "version": "3.0.1",
   "description": "firebase library for SQL users",
   "main": "dist/index.js",
   "module": "esm/index.js",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "firebase": "^10.3.1",
+    "firebase": "^10.8.0",
     "react-router-dom": "^6.15.0"
   },
   "scripts": {

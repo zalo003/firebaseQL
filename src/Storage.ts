@@ -1,5 +1,11 @@
-import { FirebaseApp } from "firebase/app"
-import { FirebaseStorage, getStorage, ref, StorageReference, uploadString, getDownloadURL, uploadBytesResumable } from "firebase/storage"
+import { 
+            FirebaseStorage, 
+            ref, 
+            StorageReference, 
+            uploadString, 
+            getDownloadURL, 
+            uploadBytesResumable 
+        } from "firebase/storage"
 import { UPLOADTYPES } from "./constants"
 import { generateRandomString } from "./helpers"
 
@@ -14,24 +20,25 @@ export class StorageUpload {
     fullPath?: string
     private storage: FirebaseStorage
 
-    constructor(props: {app: FirebaseApp, file: File | string, reference: UPLOADTYPES, uploadCategory: string, path?: string, maxSize?: number}){
-        const {file,  reference, uploadCategory, path, maxSize, app} = props
+    
+    constructor(props: {storage: FirebaseStorage, file: File | string, basePath: UPLOADTYPES, otherPath: string, maxSize?: number}){
+        const {file,  basePath,  otherPath, maxSize, storage} = props
         // storage object
-        this.storage =  getStorage(app);
+        this.storage =  storage;
        if(file){
         // set user additional path
-        this.additionalPath = path
+        this.additionalPath = otherPath
         this.maxSize = maxSize ?? 1000000
         // set file globally
         this.file = file
          // validate file
-         this.validateFile(file, reference, uploadCategory)
+         this.validateFile(file, basePath)
        }
     }
 
 
     // validate file (size, type)
-    private validateFile = (file: File | string, storageRef: UPLOADTYPES, uploadCategory: string): void =>{
+    private validateFile = (file: File | string, storageRef: UPLOADTYPES): void =>{
         let goodSize: boolean = false
         let goodType: boolean = false
         let extension = ''
@@ -43,6 +50,8 @@ export class StorageUpload {
                 goodType = file.type === 'application/pdf'
             }else if(storageRef===UPLOADTYPES.VIDEOS){
                 goodType = file.type==='video/mp4'
+            } else if (storageRef===UPLOADTYPES.AUDIOS){
+                goodType = file.type==='audio/mp3'
             }
             goodSize =  file.size > 0 && file.size <= this.maxSize!
         }else{
@@ -55,7 +64,7 @@ export class StorageUpload {
             this.setUploadError(storageRef, this.maxSize ?? 1000000, goodSize)
         }else{
             // set file name and path
-            this.setFilePath(storageRef, uploadCategory, extension)
+            this.setFilePath(storageRef, extension)
         }
     }
 
@@ -114,13 +123,12 @@ export class StorageUpload {
     }
 
     // generate new file name and extension
-    private setFilePath = (ref: UPLOADTYPES, category?: string, ext?: string): void => {
+    private setFilePath = (ref: UPLOADTYPES, ext?: string): void => {
         const d = new Date()
         const fileExtension:string = ref===UPLOADTYPES.IMAGES?'.'+ext:(ref===UPLOADTYPES.DOCUMENTS?'.pdf':'.mp4')
         const fileName = generateRandomString(30)
         this.fullPath = ref.concat(`/`, 
-            typeof(category)==='undefined'?'':`${category}/`, 
-            typeof(this.additionalPath)==='undefined'?'':`${this.additionalPath}/`, 
+            `${this.additionalPath}/`, 
             `${fileName}_${d.getTime()}${fileExtension}`)
     }
 
