@@ -118,7 +118,9 @@ export class StorageUpload {
     private setUploadError = (ref: UPLOADTYPES, maxSize: number, isGoodSize: boolean): void => {
         this.uploadError = !isGoodSize ? `File size is must not be larger than ${this.sizeMetric(maxSize)}` :
             `File is not a valid ${
-                (ref===UPLOADTYPES.IMAGES ? "image" : (ref===UPLOADTYPES.DOCUMENTS? 'document': 'video'))
+                (ref===UPLOADTYPES.IMAGES ? "image" : (ref===UPLOADTYPES.DOCUMENTS? 'document': (
+                    ref===UPLOADTYPES.VIDEOS ? 'video': 'audio'
+                )))
             }`
     }
 
