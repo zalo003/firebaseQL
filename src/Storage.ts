@@ -145,13 +145,16 @@ export class StorageUpload {
        }else{
             try {
                 const reference = ref(this.storage, this.fullPath);
+                console.log('found reference: ', reference)
                 if(typeof(this.file)==='string'){
+                    console.log("uploading as string")
                     return await this.uploadAsString(reference)
                 }else{
+                    console.log("uploading as file")
                     return await this.uploadAsFile(reference)
                 }
             } catch (error) {
-                throw new Error(`doUPload Error: ,${error}, path: ${this.fullPath}, db: ${this.storage}`)
+                throw new Error(`doUPload Error: ,${error}`)
             }
        }
     }
