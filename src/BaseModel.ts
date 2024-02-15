@@ -13,7 +13,7 @@ import { dbItems, whereClause } from "./constants";
 
 export class BaseModel implements Model {
 
-    protected firestorDB?: Firestore
+    private firestorDB?: Firestore
     // Get a new write batch
     // protected batch?: WriteBatch
 
@@ -23,8 +23,9 @@ export class BaseModel implements Model {
     // offset data
     offset?: QueryDocumentSnapshot<DocumentData>;
 
-    constructor(table: string){
+    constructor(table: string, db: Firestore){
         this.table = table
+        this.firestorDB = db
     }
 
 
@@ -297,7 +298,6 @@ export class BaseModel implements Model {
             
         } catch (error) {
             throw new Error(`findWhere: ${error}`)
-            return []
         }
     }
 
