@@ -140,12 +140,15 @@ export class StorageUpload {
      * @param progressMonitor 
      */
     async doUpload(): Promise<string | boolean> {
+        console.log("we are here now");
+        console.log('found storage: ', this.storage, ' path: ', this.fullPath)
        if(this.uploadError){
             throw new Error(`doUPload Error: ,${this.uploadError}`)
        }else{
             try {
+                
                 const reference = ref(this.storage, this.fullPath);
-                console.log('found reference: ', reference)
+                
                 if(typeof(this.file)==='string'){
                     console.log("uploading as string")
                     return await this.uploadAsString(reference)

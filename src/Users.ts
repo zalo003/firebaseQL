@@ -31,24 +31,31 @@ export class Users extends BaseModel {
 
     private user?: User
 
+
     /**
      * register user and send email verification
      * delete user if registration is not successful
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, email, password, userData }: {auth: Auth, email:string, password: string, userData?: dbItems }): Promise<boolean> {
+    async registerWithEmailAndPassword ({auth, email, password, userData, withVerification = false, persist = 'session' }: {auth: Auth, email:string, password: string, userData?: dbItems, withVerification?: boolean, persist?: 'local' | 'session' }): Promise<string | null> {
         try {
+            if(persist){
+                await setPersistence(auth, persist==='local'? browserLocalPersistence:browserSessionPersistence)
+            }
             // create firebase user with email and password
             const credential = await createUserWithEmailAndPassword(auth, email, password)
             this.user = credential.user
             
             // send verification email
-            sendEmailVerification(credential.user)
+            if(withVerification) {
+                sendEmailVerification(credential.user)
+            }
+
             // create firestore document
             if(userData){
                 await this.save(userData, credential.user.uid)
             }
-            return true
+            return credential.user.uid
         } catch (error) {
             // delete account
             if(this.user){

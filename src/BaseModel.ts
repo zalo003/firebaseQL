@@ -18,10 +18,14 @@ export class BaseModel implements Model {
     // protected batch?: WriteBatch
 
     // Database table name
-    protected table: string = '';
+    private table: string = '';
 
     // offset data
     offset?: QueryDocumentSnapshot<DocumentData>;
+
+    constructor(table: string){
+        this.table = table
+    }
 
 
     /**
