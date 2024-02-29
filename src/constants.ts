@@ -10,7 +10,8 @@ export const fbsession = /^firebase:authUser:/
 export type whereClause = {
     key: string,
     operator: WhereFilterOp,
-    value: any
+    value: any,
+    type: 'and' | 'or'
 }
 
 export enum UPLOADTYPES {

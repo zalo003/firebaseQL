@@ -6,7 +6,11 @@ import { Firestore,
     QueryConstraint, orderBy, getDoc, startAfter, 
     limit, query, updateDoc, getDocs, addDoc, 
     setDoc, deleteDoc, increment, getCountFromServer, 
-    writeBatch
+    writeBatch,
+    QueryFieldFilterConstraint,
+    or,
+    and,
+    QueryCompositeFilterConstraint
 } from "firebase/firestore";
 import { Model } from "./ModelInterface";
 import { dbItems, whereClause } from "./constants";
@@ -21,7 +25,7 @@ export class BaseModel implements Model {
     private table: string = '';
 
     // offset data
-    offset?: QueryDocumentSnapshot<DocumentData>;
+    // offset?: QueryDocumentSnapshot<DocumentData>;
 
     constructor(table: string, db: Firestore){
         this.table = table
@@ -255,20 +259,44 @@ export class BaseModel implements Model {
      * perform complex query
      * @param param0 
      */
-    async findWhere( {wh, lim, order, offset}:  {wh?: whereClause[], lim?:number, order?:string, offset?: string}): Promise<DocumentData[]> {
+    async findWhere( {wh, lim, order, offset}:  {
+        wh?: {
+            type: 'or'| 'and' | 'andOr',
+            parameter: whereClause[]
+        }, 
+        lim?:number, 
+        order?:string, 
+        offset?: string
+    }): Promise<DocumentData[]> {
         try {
             // get Collection reference
             const colRef = collection(this.firestorDB!, this.table)
             // set where clause
-            const whereParameter = wh?wh.map(clause=> where(
-                clause.key, 
-                clause.operator, 
-                clause.value)):[]
-            let constraint: QueryConstraint[] = []
+            const andWhere: QueryFieldFilterConstraint[] = [];
+            const orWhere: QueryFieldFilterConstraint[] = [];
+            let filterConstraint: QueryCompositeFilterConstraint = and();
+
             // add where parameter
             if(wh){
-                constraint.push(...whereParameter)
-            }
+                wh.parameter.forEach((clause)=>{
+                    const whe = where(
+                        clause.key, 
+                        clause.operator, 
+                        clause.value
+                    )
+                    clause.type === 'and' ?
+                    andWhere.push(whe) : orWhere.push(whe)
+                })
+
+                if(wh.type==='andOr'){
+                    filterConstraint = and(...andWhere, or(...orWhere))
+                } else if(wh.type === 'or') {
+                    filterConstraint = or(...orWhere)
+                } else {
+                    filterConstraint = and(...andWhere)
+                }
+            }        
+            let constraint = []
             // add order by
             if(order){
                 constraint.push(orderBy(order))
@@ -286,7 +314,8 @@ export class BaseModel implements Model {
         
             const snapshot = await getDocs(
                 query(
-                    colRef,  
+                    colRef,
+                    filterConstraint,
                     ...constraint
                 )
             )

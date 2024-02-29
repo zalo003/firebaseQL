@@ -12,7 +12,10 @@ export interface Model {
     // find item by where clause
     findWhere({wh, lim, order, offset} : 
         {
-            wh?:  whereClause[], 
+            wh?:  {
+                type: 'or' | 'and' | 'andOr',
+                parameter: whereClause[]
+            }, 
             lim?:number, 
             order?:string,
             offset?: string
