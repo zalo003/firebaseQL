@@ -1,5 +1,4 @@
 import { Firestore, 
-    QueryDocumentSnapshot, 
     DocumentData, doc, 
     collection, DocumentReference, 
     CollectionReference, onSnapshot, where, 
