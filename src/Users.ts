@@ -22,6 +22,7 @@ import {
         deleteUser,
         browserLocalPersistence,
         confirmPasswordReset,
+        ActionCodeSettings,
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
@@ -38,7 +39,23 @@ export class Users extends BaseModel {
      * delete user if registration is not successful
      * @param param0 
      */
-    async registerWithEmailAndPassword ({auth, email, password, userData, withVerification = false, persist = 'session' }: {auth: Auth, email:string, password: string, userData?: dbItems, withVerification?: boolean, persist?: 'local' | 'session' }): Promise<string | null> {
+    async registerWithEmailAndPassword ({
+        auth, 
+        email, 
+        password, 
+        userData, 
+        withVerification = false, 
+        persist = 'session',
+        actionCodeSettings
+     }: {
+        auth: Auth, 
+        email:string, 
+        password: string, 
+        userData?: dbItems, 
+        withVerification?: boolean, 
+        persist?: 'local' | 'session',
+        actionCodeSettings?: ActionCodeSettings
+    }): Promise<string | null> {
         try {
             if(persist){
                 await setPersistence(auth, persist==='local'? browserLocalPersistence:browserSessionPersistence)
@@ -49,7 +66,7 @@ export class Users extends BaseModel {
             
             // send verification email
             if(withVerification) {
-                sendEmailVerification(credential.user)
+                await sendEmailVerification(credential.user, actionCodeSettings)
             }
 
             // create firestore document
