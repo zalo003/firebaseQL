@@ -353,7 +353,7 @@ export class Users extends BaseModel {
             await applyActionCode(auth, actionCode)
             return true
         } catch (error) {
-            return false
+            throw new Error(`verifyEmail error: , ${error}`)
         }
     }
 
@@ -363,11 +363,11 @@ export class Users extends BaseModel {
      * @param actionCode 
      * @returns {email: string | null} 
      */
-    verifyPasswordResetLink = async (auth: Auth, actionCode:string) : Promise<string | null> => {
+    verifyPasswordResetLink = async (auth: Auth, actionCode:string) : Promise<string> => {
         try {
             return await verifyPasswordResetCode(auth, actionCode)
         } catch (error) {
-            return null
+            throw new Error(`passwordResetLink error: , ${error}`)
         }
     }
 
@@ -401,7 +401,7 @@ export class Users extends BaseModel {
                 return "Unknown user account, please sign up!"
             }
         } catch (error) {
-            return "Unable to send verification, contact Administrators!"
+            throw new Error(`sendEmailVerification error: , ${error}`)
         }
     }
   
@@ -410,8 +410,8 @@ export class Users extends BaseModel {
         try {
             await confirmPasswordReset(auth, actionCode, newPassword);
             return true
-        } catch (_) {
-            return false
+        } catch (e) {
+            throw new Error(`doPasswordReset error: , ${e}`)
         }
     }
 
