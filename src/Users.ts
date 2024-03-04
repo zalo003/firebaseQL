@@ -21,6 +21,7 @@ import {
         verifyPasswordResetCode, 
         deleteUser,
         browserLocalPersistence,
+        confirmPasswordReset,
 } from 'firebase/auth'
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
@@ -328,14 +329,14 @@ export class Users extends BaseModel {
      * @param actionCode 
      * @returns {error: string | null}
      */
-    verifyEmail = async (auth: Auth, actionCode: string): Promise<string | null> => {
+    verifyEmail = async (auth: Auth, actionCode: string): Promise<boolean> => {
         try {
             // parameter.
             // Try to apply the email verification code.
             await applyActionCode(auth, actionCode)
-            return null
+            return true
         } catch (error) {
-            throw new Error(`verifyEmail error: , ${error}`)
+            return false
         }
     }
 
@@ -349,7 +350,7 @@ export class Users extends BaseModel {
         try {
             return await verifyPasswordResetCode(auth, actionCode)
         } catch (error) {
-            throw new Error(`verifyPasswordResetLink error: , ${error}`)
+            return null
         }
     }
 
@@ -386,4 +387,15 @@ export class Users extends BaseModel {
             return "Unable to send verification, contact Administrators!"
         }
     }
+  
+    async doPasswordReset (auth: Auth, actionCode: string, newPassword: string): Promise<boolean>{
+  
+        try {
+            await confirmPasswordReset(auth, actionCode, newPassword);
+            return true
+        } catch (_) {
+            return false
+        }
+    }
+
 }
