@@ -10,12 +10,21 @@ export interface Model {
     findAll(ids?: string[]): Promise<DocumentData[]>
 
     // find item by where clause
-    findWhere({wh, lim, order, offset} : 
+    findWhereOrAnd({wh, lim, order, offset} : 
         {
             wh?:  {
                 type: 'or' | 'and' | 'andOr',
                 parameter: whereClause[]
             }, 
+            lim?:number, 
+            order?:string,
+            offset?: string
+        }): Promise<DocumentData[]>
+    
+
+    findWhere({wh, lim, order, offset} : 
+        {
+            wh?:  whereClause[], 
             lim?:number, 
             order?:string,
             offset?: string

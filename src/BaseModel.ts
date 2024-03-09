@@ -258,7 +258,7 @@ export class BaseModel implements Model {
      * perform complex query
      * @param param0 
      */
-    async findWhere( {wh, lim, order, offset}:  {
+    async findWhereOrAnd( {wh, lim, order, offset}:  {
         wh?: {
             type: 'or'| 'and' | 'andOr',
             parameter: whereClause[]
@@ -325,7 +325,58 @@ export class BaseModel implements Model {
             }else{ return [] }
             
         } catch (error) {
-            throw new Error(`findWhere: ${error}`)
+            throw new Error(`findWhereOrAnd: ${error}`)
+        }
+    }
+
+    /**
+     * complex query with and only
+     * @param param0 
+     * @returns 
+     */
+    async findWhere({wh, lim, order, offset} : {
+        wh?: whereClause[], lim?:number, order?: string, offset?: string
+    }): Promise<DocumentData[]> {
+        try {
+            const whereParameter = wh? wh.map(clause=> where(
+                clause.key, 
+                clause.operator, 
+                clause.value)) : []
+            let constraint: QueryConstraint[] = []
+            // add where parameter
+            if(wh){
+                constraint.push(...whereParameter)
+            }
+            // add order by
+            if(order){
+                constraint.push(orderBy(order))
+            }
+            // add offset
+            if(offset){
+                const off  =  await getDoc(doc(this.firestorDB!, offset));
+                constraint.push(startAfter(off))
+            }
+            // add limit
+            if(lim){
+                // 
+                constraint.push(limit(lim))
+            }
+            const ref: CollectionReference<DocumentData> = collection(this.firestorDB!, this.table, )
+        
+            const snapshot = await getDocs(
+                query(
+                    ref,
+                    ...constraint
+                )
+            )
+            if(!snapshot.empty){
+                return snapshot.docs.map(document=>{
+                    return {...document.data(), reference: document.id}
+                })
+            }else{ return [] }
+            
+        } catch (error) {
+            throw new Error(`findWhere: , ${error}`)
         }
     }
 
