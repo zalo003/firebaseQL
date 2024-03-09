@@ -12,7 +12,7 @@ import { Firestore,
     QueryCompositeFilterConstraint
 } from "firebase/firestore";
 import { Model } from "./ModelInterface";
-import { dbItems, whereClause } from "./constants";
+import { andOrWhereClause, dbItems, whereClause } from "./constants";
 
 export class BaseModel implements Model {
 
@@ -261,7 +261,7 @@ export class BaseModel implements Model {
     async findWhereOrAnd( {wh, lim, order, offset}:  {
         wh?: {
             type: 'or'| 'and' | 'andOr',
-            parameter: whereClause[]
+            parameter: andOrWhereClause[]
         }, 
         lim?:number, 
         order?:string, 
