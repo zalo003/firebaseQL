@@ -149,7 +149,7 @@ export class BaseModel implements Model {
             }
             // add offset
             if(offset){
-                const off  =  await getDoc(doc(this.firestorDB!, offset));
+                const off  =  await getDoc(doc(this.firestorDB!, this.table, offset));
                 constraint.push(startAfter(off))
             }
             // add limit
@@ -353,7 +353,7 @@ export class BaseModel implements Model {
             }
             // add offset
             if(offset){
-                const off  =  await getDoc(doc(this.firestorDB!, offset));
+                const off  =  await getDoc(doc(this.firestorDB!, this.table, offset));
                 constraint.push(startAfter(off))
             }
             // add limit
