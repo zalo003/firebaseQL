@@ -49,7 +49,7 @@ export class StorageUpload {
             }else if(storageRef===UPLOADTYPES.DOCUMENTS){
                 goodType = file.type === 'application/pdf'
             }else if(storageRef===UPLOADTYPES.VIDEOS){
-                goodType = file.type==='video/mp4'
+                goodType = file.type==='video/mp4' || file.type === 'video/m4v'
             } else if (storageRef===UPLOADTYPES.AUDIOS){
                 goodType = file.type==='audio/mp3' || file.type==='audio/mpeg'
             }
