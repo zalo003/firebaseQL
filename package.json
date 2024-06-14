@@ -13,11 +13,11 @@
     "type": "git",
     "url": "git+https://github.com/zalo003/firebaseQL.git"
   },
-  "author": "Solomon Gbadamosi <exampaqs@gmail.com>",
+  "author": "Breedware Limited <breedware@gmail.com>",
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "firebase": "^10.8.0",
+    "firebase": "^10.12.2",
     "react-router-dom": "^6.15.0"
   },
   "scripts": {

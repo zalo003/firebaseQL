@@ -396,7 +396,6 @@ export class BaseModel implements Model {
             }
                     
         } catch (error) {
-            console.log("save database: ", this.firestorDB, ' table: ', this.table)
             throw new Error(`save error: , ${error}`)
         }
     }
