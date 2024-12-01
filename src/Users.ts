@@ -250,7 +250,7 @@ export class Users extends BaseModel {
         let phoneNumber = null
         const dbUser = await this.find(uid)
         if(dbUser){
-            const dUser = dbUser as DocumentData
+            const dUser = this.data
             phoneNumber = dUser.phoneNumber
         }
         return phoneNumber
