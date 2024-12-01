@@ -16,6 +16,9 @@ import { andOrWhereClause, dbItems, whereClause } from "./constants";
 
 export class BaseModel implements Model {
 
+    // current data returned from firestore
+    data: any;
+
     private firestorDB?: Firestore
     // Get a new write batch
     // protected batch?: WriteBatch
@@ -177,12 +180,13 @@ export class BaseModel implements Model {
      * Fetch a single item from database
      * @param id 
      */
-    async find(id: string ): Promise<DocumentData | boolean> {
+    async find(id: string ): Promise< boolean> {
         try {
             const ref = doc(this.firestorDB!, this.table, id)
             const docSnap = await getDoc(ref)
             if (docSnap.exists()) {
-                return {...docSnap.data(), reference: id}
+                this.data = {...docSnap.data(), reference: id};
+                return true;
             } 
             return false
         } catch (error) {
@@ -226,26 +230,28 @@ export class BaseModel implements Model {
      * Get all items from database
      * @returns void
      */
-    async findAll(ids?: string[]) : Promise<DocumentData[]> {
+    async findAll(ids?: string[]) : Promise<boolean> {
         try {
             const colRef = collection(this.firestorDB!, this.table)
             if(ids){
                 const results: DocumentData[] = []
                 for (let id of ids){
-                    const item = await this.find(id)
-                    if(item){
-                        results.push(item as DocumentData)
+                    const found = await this.find(id)
+                    if(found){
+                        results.push(this.data as DocumentData)
                     }
                 }
-                return results
+                this.data = results;
+                return true
             } else {
                 const snaptshots =  await getDocs(colRef)
                 if(!snaptshots.empty){
-                    return snaptshots.docs.map((document)=>{
+                    this.data =  snaptshots.docs.map((document)=>{
                         return {...document.data(), reference: document.id}
                     })
+                    return true;
                 }else{
-                    return []
+                    return false;
                 }
             }
             
@@ -266,7 +272,7 @@ export class BaseModel implements Model {
         lim?:number, 
         order?:string, 
         offset?: string
-    }): Promise<DocumentData[]> {
+    }): Promise<boolean> {
         try {
             // get Collection reference
             const colRef = collection(this.firestorDB!, this.table)
@@ -319,10 +325,11 @@ export class BaseModel implements Model {
                 )
             )
             if(!snapshot.empty){
-                return snapshot.docs.map(document=>{
+                this.data = snapshot.docs.map(document=>{
                     return {...document.data(), reference: document.id}
-                })
-            }else{ return [] }
+                });
+                return true;
+            }else{ return false }
             
         } catch (error) {
             throw new Error(`findWhereOrAnd: ${error}`)

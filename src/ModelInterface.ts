@@ -3,11 +3,12 @@ import { whereClause } from "./constants"
 
 export interface Model {
  
+    data: object;
     // fetch single item
-    find(id: string): Promise<DocumentData | boolean>
+    find(id: string): Promise<boolean>
 
     // select all from database
-    findAll(ids?: string[]): Promise<DocumentData[]>
+    findAll(ids?: string[]): Promise<boolean>
 
     // find item by where clause
     findWhereOrAnd({wh, lim, order, offset} : 
@@ -19,7 +20,7 @@ export interface Model {
             lim?:number, 
             order?:string,
             offset?: string
-        }): Promise<DocumentData[]>
+        }): Promise<boolean>
     
 
     findWhere({wh, lim, order, offset} : 
