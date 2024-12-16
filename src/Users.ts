@@ -27,7 +27,6 @@ import {
 import { BaseModel } from './BaseModel'
 import { MFAVerifier, QueryReturn, dbItems } from './constants'
 // import { throw new Error } from './helpers'
-import { DocumentData } from 'firebase/firestore'
 
 export class Users extends BaseModel {
 
@@ -44,17 +43,14 @@ export class Users extends BaseModel {
         email, 
         password, 
         userData, 
-        withVerification = false, 
         persist = 'session',
-        actionCodeSettings
+        
      }: {
         auth: Auth, 
         email:string, 
         password: string, 
         userData?: dbItems, 
-        withVerification?: boolean, 
         persist?: 'local' | 'session',
-        actionCodeSettings?: ActionCodeSettings
     }): Promise<string | null> {
         try {
             if(persist){
@@ -64,11 +60,6 @@ export class Users extends BaseModel {
             const credential = await createUserWithEmailAndPassword(auth, email, password)
             this.user = credential.user
             
-            // send verification email
-            if(withVerification) {
-                await sendEmailVerification(credential.user, actionCodeSettings)
-            }
-
             // create firestore document
             if(userData){
                 await this.save(userData, credential.user.uid)
