@@ -9,7 +9,10 @@ import { Firestore,
     QueryFieldFilterConstraint,
     or,
     and,
-    QueryCompositeFilterConstraint
+    QueryCompositeFilterConstraint,
+    FieldValue,
+    arrayUnion,
+    arrayRemove
 } from "firebase/firestore";
 import { Model } from "./ModelInterface";
 import { andOrWhereClause, dbItems, whereClause } from "./constants";
@@ -223,6 +226,40 @@ export class BaseModel implements Model {
             return true
         } catch (error) {
             throw new Error(`update: , ${error}`)
+        }
+    }
+
+    /**
+     * update an array in a document
+     * @param {Array<any>} data array of data to be saved
+     * @param {string} id document reference
+     * @param {string} key key to reference
+     * @returns {boolean}
+     */
+    async updateAtomicArray(data: any[], id: string, key: string): Promise<boolean> {
+        try {
+            const docRef = doc(this.firestorDB!, this.table, id);
+            await updateDoc(docRef, {[key]: arrayUnion(...data)});
+            return true;
+        } catch (error) {
+            throw new Error(`updateAtomicArray error: ${error}`);
+        }
+    }
+
+    /**
+     * removes items from document array
+     * @param {Array<any>} data array of data to be removed
+     * @param {string} id document reference
+     * @param {string} key key to reference
+     * @returns {boolean}
+     */
+    async removeFromArray(data: any[], id: string, key: string): Promise<boolean> {
+        try {
+            const docRef = doc(this.firestorDB!, this.table, id);
+            await updateDoc(docRef, {[key]: arrayRemove(...data)});
+            return true;
+        } catch (error) {
+            throw new Error(`updateAtomicArray error: ${error}`);
         }
     }
 
