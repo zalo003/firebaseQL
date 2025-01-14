@@ -211,3 +211,85 @@ export const camelCaseToNormal = (camelCaseStr: string) => {
         .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter of the sentence
 }
 
+// log error in development
+export const errorLogger = (...error: any)=>{
+    if(window.location.hostname === 'localhost'){
+        console.log(error);
+    }
+}
+
+/**
+ * validate email address
+ * @param email 
+ * @returns 
+ */
+export function isValidEmail(email: string): string | undefined {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const pass =  emailRegex.test(email);
+    if(!pass){
+        return 'Invalid email address';
+    }
+}
+
+/**
+ * validate password
+ * must contain at least 1 uppercase
+ * must not be uppercase throughout
+ * must contain special character
+ * must be greater or equal to 8 characters
+ * @param password 
+ * @returns 
+ */
+export function isValidPassword(password: string): string | undefined {
+    // Check length
+    if (password.length < 8) {
+        return "Password cannot be less than 8 characters in length";
+    }
+
+    // Check for at least 1 uppercase letter
+    const hasUppercase = /[A-Z]/.test(password);
+    if (!hasUppercase) {
+        return "Password must contain at least 1 uppercase letter";
+    }
+
+    // Ensure it's not all uppercase
+    const isAllUppercase = /^[A-Z]+$/.test(password);
+    if (isAllUppercase) {
+        return "Password cannot be all uppercase letter";
+    }
+
+    // Check for at least 1 special character
+    const hasSpecialCharacter = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    if (!hasSpecialCharacter) {
+        return "Password must contain at least 1 special character";
+    }
+
+}
+
+function isValidName(name: string) {
+    // Check if name is a string
+    if (typeof name !== "string") {
+        return false;
+    }
+
+    // Trim any leading or trailing whitespace
+    name = name.trim();
+
+    // Define the pattern for a valid name
+    const namePattern = /^[a-zA-Z]+(?: [a-zA-Z]+)*$/;
+
+    // Check if the name matches the pattern and has at least two characters
+    return name.length >= 2 && namePattern.test(name);
+}
+
+/**
+ * validates name
+ * @param name 
+ * @returns 
+ */
+export function checkIsValidName(name: string): string | undefined {
+    if(!isValidName(name)){
+        return 'Please enter a valid value'
+    }
+}
+
