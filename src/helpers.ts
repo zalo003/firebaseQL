@@ -1,4 +1,3 @@
-import { redirect } from "react-router-dom";
 
 /**
  * Generates random strings of n length
@@ -20,50 +19,6 @@ export const generateRandomString = (length: number): string => {
 }
 
 
-/**
- * Check if firebase session is still active
- * @returns {string | null}
- */
-// export const getFirebaseSessionKey = (method: 'local' | 'session'): string | null =>{
-//     const sess = method==='session'? window.sessionStorage: window.localStorage as object
-// 		const sessKeys = Object.keys(sess)
-// 		const ses = sessKeys.find(item => fbsession.test(item))
-//     if(typeof(ses)!=='undefined'){
-//       return ses
-//     }
-//     return null
-// }
-
-// check if environment is production or development
-// export const isDevelopment = window.location.hostname==='localhost'
-// export const baseUrl = isDevelopment ? 'http://localhost:3000'? undefined
-
-// export const throw new Error = (error: any, ...optionalParams: any[])=>{
-//   if(isDevelopment){
-//     console.log(error, optionalParams)
-//   }
-// }
-
-
-/**
- * page redirect
- * @param pageUrl 
- * @returns 
- */
-export const pageRedirect = async (pageUrl: string) => {
-    return redirect(`/${pageUrl}`);
-}
-
-
-/**
- * 
- * @param 
- * @returns 
- */
-export const getUrlParams = (): object =>{
-  const urlParams = new URLSearchParams(window.location.search);
-  return Object.fromEntries(urlParams)
-}
 
 /**
  * converts camel cases to title case
@@ -90,14 +45,6 @@ export const camelToTitleCase = (key: string): string => {
       i++
   }
   return result
-}
-
-
-export const getCurrentLocation = ():string =>{
-  const currentPath:string = window.location.pathname
-  // convert path to array
-  const pathArr = currentPath.split('/')
-  return pathArr[1]
 }
 
 
@@ -137,3 +84,130 @@ export const moneyFormatter = (x:number | string, shorten:boolean = true, decima
       return val
   }
 }
+
+
+/**
+ * Returns a date that is `daysApart` days before the given `startDate`.
+ * 
+ * @param startDate - The original date from which to subtract days.
+ * @param daysApart - The number of days to subtract from `startDate`.
+ * @returns A new `Date` object representing the date `daysApart` days before `startDate`.
+ */
+export function getDaysAgo(startDate: Date, daysApart: number): Date {
+    // Create a local copy of the start date by converting it to a date string and then back to a Date object.
+    const localCopy = new Date(startDate.toDateString());
+
+    // Subtract the specified number of days from the local copy's date and return the resulting date.
+    return new Date(localCopy.setDate(localCopy.getDate() + daysApart));
+}
+
+/**
+ * Calculates how long ago a given date is from now and returns a human-readable string.
+ * 
+ * @param {Date | string | number} dateInput - The date to compare against the current time.
+ * @returns {string} - A string describing how long ago the date was (e.g., "5 minutes ago", "2 days ago").
+ */
+export function timeAgo(dateInput: Date | string | number): string {
+    // Ensure the input is a Date object
+    const date = new Date(dateInput);
+    
+    if (isNaN(date.getTime())) {
+        throw new Error("Invalid date input");
+    }
+
+    // Get the current date and time
+    const now = new Date();
+
+    // Calculate the difference in seconds between the current time and the given date
+    const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    // Calculate the difference in minutes
+    const minutesAgo = Math.floor(secondsAgo / 60);
+    if (minutesAgo < 1) return "Just now"; // Less than a minute ago
+
+    // Calculate the difference in hours
+    const hoursAgo = Math.floor(minutesAgo / 60);
+    if (hoursAgo < 1) return `${minutesAgo} minute${minutesAgo !== 1 ? 's' : ''} ago`; // Less than an hour ago
+
+    // Calculate the difference in days
+    const daysAgo = Math.floor(hoursAgo / 24);
+    if (daysAgo < 1) return `${hoursAgo} hour${hoursAgo !== 1 ? 's' : ''} ago`; // Less than a day ago
+
+    // Calculate the difference in months
+    const monthsAgo = Math.floor(daysAgo / 30);
+    if (daysAgo < 30) return `${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago`; // Less than a month ago
+
+    // Calculate the difference in years
+    const yearsAgo = Math.floor(monthsAgo / 12);
+    if (monthsAgo < 12) return `${monthsAgo} month${monthsAgo !== 1 ? 's' : ''} ago`; // Less than a year ago
+
+    // If more than a year ago, return the number of years
+    return `${yearsAgo} year${yearsAgo !== 1 ? 's' : ''} ago`;
+}
+
+/**
+ * check if a tab section is active
+ * @param param0 
+ * @returns boolean
+ */
+export const isActiveTab = ({currentTabPath,  urlSegment}:{
+    currentTabPath: string,
+    // urlPath: string,
+    urlSegment: string []
+}):boolean=>{
+    return urlSegment.includes(currentTabPath) 
+    || urlSegment.includes(`/${currentTabPath}`)
+    || urlSegment.includes(`/${currentTabPath}/`)
+    || urlSegment.includes(`${currentTabPath}/`)
+}
+
+// Function to calculate distance between two lat/lng points using Haversine formula
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = deg2rad(lat2 - lat1); // Convert latitude difference to radians
+    const dLon = deg2rad(lon2 - lon1); // Convert longitude difference to radians
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
+}
+
+// Helper function to convert degrees to radians
+function deg2rad(deg: number) {
+    return deg * (Math.PI / 180);
+}
+
+// Function to check if device is within a certain range
+export function isDeviceWithinRange(deviceLat: number, deviceLon: number, targetLat: number, targetLon: number, rangeInKm: number) {
+    const distance = getDistanceFromLatLonInKm(deviceLat, deviceLon, targetLat, targetLon);
+    return distance <= rangeInKm; // Check if distance is within the specified range
+}
+
+// Example usage
+// const deviceLat = 40.7128; // Device's latitude
+// const deviceLon = -74.0060; // Device's longitude (e.g., New York City)
+// const targetLat = 40.730610; // Target location's latitude (e.g., some location in NYC)
+// const targetLon = -73.935242; // Target location's longitude
+// const rangeInKm = 5; // 5 km range
+
+// const isWithinRange = isDeviceWithinRange(deviceLat, deviceLon, targetLat, targetLon, rangeInKm);
+
+// console.log(isWithinRange ? "Device is within range" : "Device is out of range");
+
+
+// create range of numbers
+export const range = (start: number, end: number)=>Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+export const nairaFormatter = (amount: number): string =>{
+    return `₦${amount.toLocaleString('en-US')}`;
+}
+
+export const camelCaseToNormal = (camelCaseStr: string) => {
+    return camelCaseStr
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase letters
+        .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter of the sentence
+}
+
