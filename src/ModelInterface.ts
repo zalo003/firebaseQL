@@ -18,7 +18,10 @@ export interface Model {
                 parameter: whereClause[]
             }, 
             lim?:number, 
-            order?:string,
+            order?:{
+                parameter: string,
+                direction?: 'asc' | 'desc'
+            },
             offset?: string
         }): Promise<boolean>
     
@@ -27,7 +30,10 @@ export interface Model {
         {
             wh?:  whereClause[], 
             lim?:number, 
-            order?:string,
+            order?:{
+                parameter: string,
+                direction?: 'asc' | 'desc'
+            },
             offset?: string
         }): Promise<DocumentData[]>
 
@@ -63,7 +69,10 @@ export interface Model {
      * @param lim 
      * @param order 
      */
-    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: string, offset?: string): void 
+    streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: {
+        parameter: string,
+        direction?: 'asc' | 'desc'
+    }, offset?: string): void 
 
     /**
      * count data in database

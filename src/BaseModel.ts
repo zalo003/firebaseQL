@@ -138,7 +138,10 @@ export class BaseModel implements Model {
      * @param lim 
      * @param order 
      */
-    async streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: string, offset?: string): Promise<void> {
+    async streamWhere(wh: whereClause[], callBack: (data: DocumentData[])=>void,  lim?:number, order?: {
+        parameter: string,
+        direction?: 'asc' | 'desc'
+    }, offset?: string): Promise<void> {
         try {
             const whereParameter = wh.map(clause=> where(
                 clause.key, 
@@ -151,7 +154,7 @@ export class BaseModel implements Model {
             }
             // add order by
             if(order){
-                constraint.push(orderBy(order))
+                constraint.push(orderBy(order.parameter, order.direction))
             }
             // add offset
             if(offset){
@@ -307,7 +310,10 @@ export class BaseModel implements Model {
             parameter: andOrWhereClause[]
         }, 
         lim?:number, 
-        order?:string, 
+        order?:{
+            parameter: string,
+            direction?: 'asc' | 'desc'
+        }, 
         offset?: string
     }): Promise<boolean> {
         try {
@@ -341,7 +347,7 @@ export class BaseModel implements Model {
             let constraint = []
             // add order by
             if(order){
-                constraint.push(orderBy(order))
+                constraint.push(orderBy(order.parameter, order.direction))
             }
             // add offset
             if(offset){
@@ -379,7 +385,10 @@ export class BaseModel implements Model {
      * @returns 
      */
     async findWhere({wh, lim, order, offset} : {
-        wh?: whereClause[], lim?:number, order?: string, offset?: string
+        wh?: whereClause[], lim?:number, order?: {
+            parameter: string,
+            direction?: 'asc' | 'desc'
+        }, offset?: string
     }): Promise<DocumentData[]> {
         try {
             const whereParameter = wh? wh.map(clause=> where(
@@ -393,7 +402,7 @@ export class BaseModel implements Model {
             }
             // add order by
             if(order){
-                constraint.push(orderBy(order))
+                constraint.push(orderBy(order.parameter, order.direction))
             }
             // add offset
             if(offset){
