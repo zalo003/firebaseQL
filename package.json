@@ -1,6 +1,6 @@
 {
-  "name": "firebaseql",
-  "version": "6.1.0",
+  "name": "firebase-client-ql",
+  "version": "2.0.0",
   "description": "firebase library for SQL users",
   "main": "dist/index.js",
   "module": "esm/index.js",
