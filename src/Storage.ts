@@ -4,7 +4,8 @@ import {
             StorageReference, 
             uploadString, 
             getDownloadURL, 
-            uploadBytesResumable 
+            uploadBytesResumable, 
+            deleteObject
         } from "firebase/storage"
 import { UPLOADTYPES } from "./constants"
 import { generateRandomString } from "./helpers"
@@ -42,17 +43,24 @@ export class StorageUpload {
         let goodSize: boolean = false
         let goodType: boolean = false
         let extension = ''
+        let goodTypes: string[] = [];
         if(typeof(file)!=='string'){
             if(storageRef===UPLOADTYPES.IMAGES){
+                goodTypes = ['image/png', 'image/jpg', 'image/jpeg' ];
                 extension = this.getExtensionName(file.type)
-                goodType = file.type==='image/png' || file.type==='image/jpg' || file.type==='image/jpeg'
             }else if(storageRef===UPLOADTYPES.DOCUMENTS){
-                goodType = file.type === 'application/pdf'
+                goodTypes = [
+                    'application/pdf',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel'
+                ];
+                extension = this.getDocExtensionName(file.type);
             }else if(storageRef===UPLOADTYPES.VIDEOS){
-                goodType = file.type==='video/mp4' || file.type === 'video/m4v'
+                goodTypes = ['video/mp4', 'video/m4v']
             } else if (storageRef===UPLOADTYPES.AUDIOS){
-                goodType = file.type==='audio/mp3' || file.type==='audio/mpeg'
+                goodTypes = ['audio/mp3', 'audio/mpeg']
             }
+            goodType = goodTypes.includes(file.type);
             goodSize =  file.size > 0 && file.size <= this.maxSize!
         }else{
             goodType = true
@@ -94,6 +102,20 @@ export class StorageUpload {
      */
     private getExtensionName = (fileType: string): string =>{
         let ext = ''
+        if(fileType==='application/pdf'){
+            ext = 'pdf'
+        }
+        if(fileType==='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+            ext = '.xlsx'
+        }
+        if(fileType==='application/vnd.ms-excel'){
+            ext = '.xls'
+        }
+        return ext
+    }
+
+    private getDocExtensionName = (fileType: string): string=>{
+        let ext = ''
         if(fileType==='image/png'){
             ext = 'png'
         }
@@ -103,7 +125,7 @@ export class StorageUpload {
         if(fileType==='image/jpeg'){
             ext = 'jpeg'
         }
-        return ext
+        return ext 
     }
 
 
@@ -127,9 +149,10 @@ export class StorageUpload {
     // generate new file name and extension
     private setFilePath = (ref: UPLOADTYPES, ext?: string): void => {
         const d = new Date()
-        const fileExtension:string = ref===UPLOADTYPES.IMAGES?'.'+ext:(ref===UPLOADTYPES.DOCUMENTS?'.pdf':(
+        const fileExtension:string = (ref===UPLOADTYPES.IMAGES || ref===UPLOADTYPES.DOCUMENTS)?'.'+ext:
+        // (ref===UPLOADTYPES.DOCUMENTS?'.pdf':(
             ref===UPLOADTYPES.VIDEOS ? '.mp4': '.mp3'
-        ));
+        // ));
         const fileName = generateRandomString(30)
         this.fullPath = ref.concat(`/`,`${this.additionalPath}/`, 
             `${fileName}_${d.getTime()}${fileExtension}`)
@@ -140,8 +163,6 @@ export class StorageUpload {
      * @param progressMonitor 
      */
     async doUpload(): Promise<string | boolean> {
-        console.log("we are here now");
-        console.log('found storage: ', this.storage, ' path: ', this.fullPath)
        if(this.uploadError){
             throw new Error(`doUPload Error: ,${this.uploadError}`)
        }else{
@@ -194,6 +215,23 @@ export class StorageUpload {
             }
         } catch (error) {
             throw new Error(`uploadAsFile: , ${error}`)
+        }
+    }
+
+    /**
+     * delete files from storage
+     * @param filePath 
+     * @param storage 
+     * @returns {boolean}
+     */
+    static async deleteFile(filePath: string, storage: FirebaseStorage): Promise<boolean>{
+        try {
+            const delRef = ref(storage, filePath);
+            // delete file
+            await deleteObject(delRef);
+            return true
+        } catch (error) {
+            return false
         }
     }
 }
