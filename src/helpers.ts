@@ -293,3 +293,51 @@ export function checkIsValidName(name: string): string | undefined {
     }
 }
 
+/**
+ * generate number of years
+ * from now
+ * @param timeAgo 
+ * @param tense 
+ * @returns 
+ */
+export const generateYearsPast = (timeAgo: number, tense: 'future' | 'past'): number[] => {
+    const currentYear = new Date().getFullYear();
+    const years = tense==='past'?
+     Array.from({ length: timeAgo }, (_, i) => currentYear - (i + 1)):
+     Array.from({length: timeAgo }, (_, i)=>currentYear + (i + 1));
+    return years;
+  };
+
+  /**
+   * change number to Alphabet
+   * @param num 
+   * @returns 
+   */
+export function numberToAlphabet(num: number): string {
+    let result = "";
+  
+    while (num > 0) {
+      // Adjust for 1-based indexing: 1 = A, 2 = B, ..., 26 = Z
+      num--; 
+      const charCode = (num % 26) + 65; // 65 is the ASCII value for 'A'
+      result = String.fromCharCode(charCode) + result;
+      num = Math.floor(num / 26);
+    }
+  
+    return result;
+  }
+
+  /**
+   * get nth array of numbers
+   * @param num 
+   * @param step 
+   * @returns 
+   */
+export function getNthNumbersOfArray(num: number, step: number): number[] {
+    if (num <= 0 || step <= 0) {
+        throw new Error("Both number and step must be greater than 0");
+    }
+
+    return Array.from({ length: Math.floor(num / step) }, (_, i) => (i + 1) * step);
+}
+
